@@ -127,412 +127,327 @@ double segfac ;
 int count, ntbs, nseeds ;
 struct params pars ;
 
-comSS(char *srcSeq[], int *nsam, int *ncol, int *queMarLen, double *fiveSS) {
-	char *tempSam;
-	int hasEqualed(char* seq, char**seqList, int sizeOfSL);
-    int hasEqualedQM(char* seq, char**seqList, int sizeOfSL);
-	int observedH = 0, Npi=0, sLSize, i, j, tempDiff=0, ccc=0;
-	double Hetero=0.0, sk2=0.0, mean_pi=0.0;
-	double average_r2=0.0, average_sk2=0.0, Nmh=0.0, Nvd=0.0;
-	void fiveStat(double fv[], char* seg1, char* seg2);
-	char **cmatrix(), **segmentList;
-	int diff(char* chr1, char* chr2);
-	segmentList = cmatrix(nsam[0], ncol[0]+1);
-	sLSize = nsam[0];
-	memset(segmentList, 0, (unsigned)sLSize*sizeof( char* ) );
+char **cmatrix(int nsam, int len);
+double ttime(struct node *, int nsam);
+double ttimemf(struct node *, int nsam, int mfreq);
+int diff(char* chr1, char* chr2);
+int gensam(char **list, double *probss, double *ptmrca, double *pttot);
+int gensamWithQM(char **list, double *probss, double *ptmrca, double *pttot, int *qmRow, int *qmCol, int queMarLen);
+int hasEqualed(char* seq, char** seqList, int sizeOfSL);
+int hasEqualedQM(char* seq, char** seqList, int sizeOfSL);
+int make_gametes(int nsam, int mfreq, double *posit, long int nsites, struct node *ptree, double tt, int newsites, int ns, char **list);
+int make_MFSgametes(int nsam, int mfreq, double *posit, long int nsites, struct node *ptree, double sintontt, double doutontt, double othtontt, int stonnewsites, int dtonnewsites, int otonnewsites, int ns, char **list, int loop);
+int mnmial(int n, int nclass, double* p, int* rv);
+int poisso(double u);
+int seqListSize(char** seqList, int sizeOfSL);
+int tSEquOt(char* seg1, char* seg2);
+struct segl *segtre_mig(struct c_params *p, int *nsegs);
+int biggerlist(int nsam, char** list);
+void fiveStat(double fv[], char* seg1, char* seg2);
+void getpars(int argc, char **argv, int *howmany);
+int locate(int n, double beg, double len, double* ptr);
+void ndes_setup(struct node *, int nsam);
+void prtree(struct node *ptree, int nsam);
+void sdottime(struct node *, int nsam, double* sdot, int unfo);
+void sdottimemf(struct node *, int nsam, double* sdot, int mfreq, int unfo);
+void seedit(const char *);
+int pickb_StonQM(int nsam, struct node *ptree, double tt);
+int pickb_DtonQM(int nsam, struct node *ptree, double tt);
+int pickb_OtonQM(int nsam, struct node *ptree, double tt);
+int tdesn(struct node *ptree, int tip, int node);
+void ordran(int n, double* pbuf);
+void addtoelist(struct devent *pt, struct devent *elist);
+void argcheck(int arg, int argc, char **argv);
+int commandlineseed(char **);
+void free_eventlist(struct devent *pt, int npop);
+int usage();
+void ranvec(int n, double* pbuf);
+void order(int n, double* pbuf);
 
-	if(*queMarLen > 0) {  // have question marks
-		for(i=0;i<sLSize; i++) {
-			tempSam = srcSeq[i];
-			if(hasEqualedQM(tempSam, segmentList, sLSize) == 0) {
-				segmentList[seqListSize(segmentList, sLSize)] = tempSam;
-				observedH++;
-			}
-		}
-	} else {
-   
-		for(i=0;i<sLSize; i++) {
-			tempSam = srcSeq[i];
-			if(hasEqualed(tempSam, segmentList, sLSize) == 0) {
-				segmentList[seqListSize(segmentList, sLSize)] = tempSam;
-				observedH++;
-			}
-		}
-	}
-	fiveSS[0] = observedH;
-  
-  
-	Npi = 0;
-    for(i=0;i<sLSize-1;i++) {
-        for(j=i+1;j<sLSize;j++) {
+int comSS(char *srcSeq[], int *nsam, int *ncol, int *queMarLen, double *fiveSS) {
+    char *tempSam;
+    int hasEqualed(char* seq, char** seqList, int sizeOfSL);
+    int hasEqualedQM(char* seq, char** seqList, int sizeOfSL);
+    int seqListSize(char** seqList, int sizeOfSL);
+    int diff(char* chr1, char* chr2);
+    void fiveStat(double fv[], char* seg1, char* seg2);
+    char **cmatrix(int nsam, int len);
+
+    int observedH = 0, Npi = 0, sLSize, i, j, tempDiff = 0, ccc = 0;
+    double Hetero = 0.0, sk2 = 0.0, mean_pi = 0.0;
+    double average_r2 = 0.0, average_sk2 = 0.0, Nmh = 0.0, Nvd = 0.0;
+    char **segmentList;
+
+    segmentList = cmatrix(nsam[0], ncol[0] + 1);
+    sLSize = nsam[0];
+    memset(segmentList, 0, (unsigned)sLSize * sizeof(char*));
+
+    if (*queMarLen > 0) {  // have question marks
+        for (i = 0; i < sLSize; i++) {
+            tempSam = srcSeq[i];
+            if (hasEqualedQM(tempSam, segmentList, sLSize) == 0) {
+                segmentList[seqListSize(segmentList, sLSize)] = tempSam;
+                observedH++;
+            }
+        }
+    } else {
+        for (i = 0; i < sLSize; i++) {
+            tempSam = srcSeq[i];
+            if (hasEqualed(tempSam, segmentList, sLSize) == 0) {
+                segmentList[seqListSize(segmentList, sLSize)] = tempSam;
+                observedH++;
+            }
+        }
+    }
+    fiveSS[0] = observedH;
+
+    Npi = 0;
+    for (i = 0; i < sLSize - 1; i++) {
+        for (j = i + 1; j < sLSize; j++) {
             Npi++;
         }
     }
     int tempDiffArr[Npi];
 
     Npi = 0;
-	Hetero = 0.0;
-	mean_pi = 0.0;
-	sk2 = 0.0;
-	for(i=0;i<sLSize-1;i++) {
-		for(j=i+1;j<sLSize;j++) {
-			tempDiff = diff(srcSeq[i], srcSeq[j]);
-			tempDiffArr[Npi++] = tempDiff;
-			mean_pi = mean_pi + tempDiff;
-			if (tempDiff > 0) { Hetero ++; }
-		}
-	}
-	Hetero = Hetero/Npi;
-	mean_pi = mean_pi/Npi;
-	for(i=0;i<Npi;i++) {
-		sk2 = sk2 + (tempDiffArr[i]-mean_pi)*(tempDiffArr[i]-mean_pi);
-	}
-	sk2 = sk2/(Npi-1);
-	//fiveSS[1] = sk2; // sk2
-	fiveSS[1] = Hetero; // Hetero
+    Hetero = 0.0;
+    mean_pi = 0.0;
+    sk2 = 0.0;
+    for (i = 0; i < sLSize - 1; i++) {
+        for (j = i + 1; j < sLSize; j++) {
+            tempDiff = diff(srcSeq[i], srcSeq[j]);
+            tempDiffArr[Npi++] = tempDiff;
+            mean_pi = mean_pi + tempDiff;
+            if (tempDiff > 0) { Hetero++; }
+        }
+    }
+    Hetero = Hetero / Npi;
+    mean_pi = mean_pi / Npi;
+    for (i = 0; i < Npi; i++) {
+        sk2 = sk2 + (tempDiffArr[i] - mean_pi) * (tempDiffArr[i] - mean_pi);
+    }
+    sk2 = sk2 / (Npi - 1);
+    //fiveSS[1] = sk2; // sk2
+    fiveSS[1] = Hetero; // Hetero
 
-	// second initial to zero
-	Npi = 0;
-	average_r2 = 0.0;
-	average_sk2 = 0.0;
-	Nmh = 0.0;
-	Nvd = 0.0;
+    // second initial to zero
+    Npi = 0;
+    average_r2 = 0.0;
+    average_sk2 = 0.0;
+    Nmh = 0.0;
+    Nvd = 0.0;
 
-	char tempSeg1[sLSize+1];
-	for(i=0;i<sLSize+1;i++) {
-	  tempSeg1[i] = '\0';
-	}
-	char tempSeg2[sLSize+1];
-	for(i=0;i<sLSize+1;i++) {
-	  tempSeg2[i] = '\0';
-	}
+    char tempSeg1[sLSize + 1];
+    for (i = 0; i < sLSize + 1; i++) {
+        tempSeg1[i] = '\0';
+    }
+    char tempSeg2[sLSize + 1];
+    for (i = 0; i < sLSize + 1; i++) {
+        tempSeg2[i] = '\0';
+    }
 
-	double fiveVal[2] = {0.0, 0.0};
-	for(i=0;i<ncol[0]-1;i++) {
-		for(j=i+1;j<ncol[0];j++) {
-			if((srcSeq[0][i] != '-') && (srcSeq[0][j] != '-')) {
-  				Npi++;
-  				for(ccc=0;ccc<sLSize;ccc++) {
-             tempSeg1[ccc] = srcSeq[ccc][i];
-             tempSeg2[ccc] = srcSeq[ccc][j];
-          }
-          fiveStat(fiveVal, tempSeg1, tempSeg2);
-          
-          //printf("i:%d, j:%d, sk2: %f, r2: %f\n", i,j, fiveVal[1], fiveVal[0]);
+    double fiveVal[2] = {0.0, 0.0};
+    for (i = 0; i < ncol[0] - 1; i++) {
+        for (j = i + 1; j < ncol[0]; j++) {
+            if ((srcSeq[0][i] != '-') && (srcSeq[0][j] != '-')) {
+                Npi++;
+                for (ccc = 0; ccc < sLSize; ccc++) {
+                    tempSeg1[ccc] = srcSeq[ccc][i];
+                    tempSeg2[ccc] = srcSeq[ccc][j];
+                }
+                fiveStat(fiveVal, tempSeg1, tempSeg2);
 
-  				average_r2 = average_r2 + fiveVal[0];
-  				average_sk2 = average_sk2 + fiveVal[1];
-          }
-      }
-  }
+                //printf("i:%d, j:%d, sk2: %f, r2: %f\n", i,j, fiveVal[1], fiveVal[0]);
 
-	  average_r2 = average_r2/Npi;
-	  average_sk2 = average_sk2/Npi;
+                average_r2 = average_r2 + fiveVal[0];
+                average_sk2 = average_sk2 + fiveVal[1];
+            }
+        }
+    }
+
+    average_r2 = average_r2 / Npi;
+    average_sk2 = average_sk2 / Npi;
     fiveSS[2] = average_sk2; // average_sk2
     fiveSS[3] = average_r2; // average_r2
+
+    return 0; // 添加返回值
 }
 
-//main(argc,argv)
-//        int argc;
- //       char *argv[];
-mySimulator(char **argv, int *argvLen, int *yiWanHaps, int *quesMarIds, int *queMarLen, double *sixSS, int *oneOrSix)  // for simulator
-{
-
+int mySimulator(char **argv, int *argvLen, int *yiWanHaps, int *quesMarIds, int *queMarLen, double *sixSS, int *oneOrSix) {
     int argc = *argvLen;   // for simulator
-    
-    
-    //printf("argc:%d\n", argc);
-   
-   
-   
-	int i, k, howmany, segsites, ton;
-	char **list, **cmatrix(), **segmentList; //, **tbsparamstrs ;
-	FILE *pf, *fopen() ;
-	double probss, tmrca, ttot ;
-	void seedit( const char * ) ;
-	void getpars( int argc, char **argv, int *howmany )  ;
-	int gensam( char **list, double *probss, double *ptmrca, double *pttot ) ;
-	int gensamWithQM( char **list, double *probss, double *ptmrca, double *pttot, int *qmRow, int *qmCol, int queMarLen) ;
+
+    int i, k, howmany, segsites, ton;
+    char **list, **cmatrix(), **segmentList;
+    FILE *pf;
+    double probss, tmrca, ttot;
+    void seedit(const char *);
+    void getpars(int argc, char **argv, int *howmany);
+    int gensam(char **list, double *probss, double *ptmrca, double *pttot);
+    int gensamWithQM(char **list, double *probss, double *ptmrca, double *pttot, int *qmRow, int *qmCol, int queMarLen);
     int sLSize, dataCount, yiWanH;
-    int j, Npi=0, tempDiff=0, ccc=0;
-	double Hetero=0.0, sk2=0.0, mean_pi=0.0;
-	double average_r2=0.0, average_sk2=0.0, Nmh=0.0, Nvd=0.0;
+    int j, Npi = 0, tempDiff = 0, ccc = 0;
+    double Hetero = 0.0, sk2 = 0.0, mean_pi = 0.0;
+    double average_r2 = 0.0, average_sk2 = 0.0, Nmh = 0.0, Nvd = 0.0;
     char *tempSam;
     int tSEquOt(char* seg1, char* seg2);
-    int hasEqualed(char* seq, char**seqList, int sizeOfSL);
-    int hasEqualedQM(char* seq, char**seqList, int sizeOfSL);
-    int seqListSize(char**seqList, int sizeOfSL);
+    int hasEqualed(char* seq, char** seqList, int sizeOfSL);
+    int hasEqualedQM(char* seq, char** seqList, int sizeOfSL);
+    int seqListSize(char** seqList, int sizeOfSL);
     int diff(char* chr1, char* chr2);
-	void fiveStat(double fv[], char* seg1, char* seg2);
-    ntbs = 0 ;   /* these next few lines are for reading in parameters from a file (for each sample) */
-/*	tbsparamstrs = (char **)malloc( argc*sizeof(char *) ) ;
+    void fiveStat(double fv[], char* seg1, char* seg2);
+    ntbs = 0;
 
-//	for( i=0; i<argc; i++) printf("%s ",argv[i]);  for only data
-	for( i =0; i<argc; i++) tbsparamstrs[i] = (char *)malloc(30*sizeof(char) ) ;
-	for( i = 1; i<argc ; i++)
-			if( strcmp( argv[i],"tbs") == 0 )  argv[i] = tbsparamstrs[ ntbs++] ;
-*/
-	count=0;
+    count = 0;
 
+    getpars(argc, argv, &howmany);
 
-//	if( ntbs > 0 )  for( k=0; k<ntbs; k++)  scanf(" %s", tbsparamstrs[k] );
-    getpars( argc, argv, &howmany) ;   /* results are stored in global variable, pars */
-// printf("nsam:%d,howmany:%d,singleton:%d,doubleton:%d,otherton:%d,rho:%f\n",pars.cp.nsam,howmany, pars.mfs.singlton,pars.mfs.doubleton,pars.mfs.otherton, pars.cp.r);
- // printf("nsam:%d,howmany:%d,g:%f\n",pars.cp.nsam,howmany, pars.cp.alphag[0]);
- 
-  sLSize = pars.cp.nsam;
+    sLSize = pars.cp.nsam;
     pars.mfs.strNumber = oneOrSix[0];
 
-   // printf("1 argc:%d\n", argc);
-	if( !pars.commandlineseedflag ) seedit("s");
-	pf = stdout ;
+    if (!pars.commandlineseedflag) seedit("s");
+    pf = stdout;
 
-    if( pars.mp.segsitesin ==  0 ) { // not have -s
-        if((pars.mfs.singlton == 0) && (pars.mfs.doubleton == 0) && (pars.mfs.otherton == 0)) { // not have mfs -Y
-            list = cmatrix(pars.cp.nsam,maxsites+1);
-            posit = (double *)malloc( (unsigned)( maxsites*sizeof( double)) ) ;
+    if (pars.mp.segsitesin == 0) { // not have -s
+        if ((pars.mfs.singlton == 0) && (pars.mfs.doubleton == 0) && (pars.mfs.otherton == 0)) { // not have mfs -Y
+            list = cmatrix(pars.cp.nsam, maxsites + 1);
+            posit = (double *)malloc((unsigned)(maxsites * sizeof(double)));
         } else {
             ton = pars.mfs.doubleton + pars.mfs.singlton + pars.mfs.otherton;
-            if(pars.mfs.moreLength > 0) {
-                list = cmatrix(pars.cp.nsam*2, ton+1); //increase the size two times
+            if (pars.mfs.moreLength > 0) {
+                list = cmatrix(pars.cp.nsam * 2, ton + 1); // increase the size two times
             } else {
-                list = cmatrix(pars.cp.nsam, ton+1);
+                list = cmatrix(pars.cp.nsam, ton + 1);
             }
-            segmentList = cmatrix(pars.cp.nsam, ton+1);
-            posit = (double *)malloc( (unsigned)( ton*sizeof( double)) ) ;
-            if( pars.mp.theta > 0.0 ){
-                segfac = 1.0 ;
-                for(  i= ton; i > 1; i--) segfac *= i ;
+            segmentList = cmatrix(pars.cp.nsam, ton + 1);
+            posit = (double *)malloc((unsigned)(ton * sizeof(double)));
+            if (pars.mp.theta > 0.0) {
+                segfac = 1.0;
+                for (i = ton; i > 1; i--) segfac *= i;
             }
         }
-	} else { //have -s
-	    list = cmatrix(pars.cp.nsam, pars.mp.segsitesin+1 ) ;
-        posit = (double *)malloc( (unsigned)( pars.mp.segsitesin*sizeof( double)) ) ;
-        if( pars.mp.theta > 0.0 ){
-             segfac = 1.0 ;
-             for(  i= pars.mp.segsitesin; i > 1; i--) segfac *= i ;
+    } else { // have -s
+        list = cmatrix(pars.cp.nsam, pars.mp.segsitesin + 1);
+        posit = (double *)malloc((unsigned)(pars.mp.segsitesin * sizeof(double)));
+        if (pars.mp.theta > 0.0) {
+            segfac = 1.0;
+            for (i = pars.mp.segsitesin; i > 1; i--) segfac *= i;
         }
-	}
-  
-  
-    //printf("2 argc:%d\n", argc);
-	//fprintf(pf,"befff[0]: %d\n", 7);
-//fprintf(pf,"queMarLen[0]: %d\n", *queMarLen);
-int testLen = *queMarLen;
-int qmRow[testLen]; // question marks row index
-int qmCol[testLen]; // question marks column index
+    }
 
-if(*queMarLen > 0) {  // have question marks
-        //int testLen = 6;
-        //int qMInd[] = {0, 1, 2, 3, 4 , 5};
+    int testLen = *queMarLen;
+    int qmRow[testLen]; // question marks row index
+    int qmCol[testLen]; // question marks column index
 
-        for(dataCount=0;dataCount<testLen;dataCount++) {
-           // int qmTmp = atoi(queMarInd[dataCount]);  // atoi(queMarInd[dataCount]); is String to int
-            int qmTmp = quesMarIds[dataCount]; //int qmTmp = qMInd[dataCount];
-            //fprintf(pf,"markIndex: %d\n", qmTmp);
-            qmRow[dataCount] = qmTmp%sLSize;
-            qmCol[dataCount] = qmTmp/sLSize;
+    if (*queMarLen > 0) {  // have question marks
+        for (dataCount = 0; dataCount < testLen; dataCount++) {
+            int qmTmp = quesMarIds[dataCount];
+            qmRow[dataCount] = qmTmp % sLSize;
+            qmCol[dataCount] = qmTmp / sLSize;
         }
-}
-
+    }
 
     dataCount = 0;
-    while( howmany-count++ ) {
-  //          printf("dataCount:%d",  dataCount);
-	/*   if( (ntbs > 0) && (count >1 ) ){
-	         for( k=0; k<ntbs; k++){
-			    if( scanf(" %s", tbsparamstrs[k]) == EOF ){
-			       if( !pars.commandlineseedflag ) seedit( "end" );
-				   exit(0);
-				}
-			 }
-			 getpars( argc, argv, &howmany) ;
-	   } */
- //      fprintf(pf,"\n//");     for only data
-	/*   if( ntbs >0 ){
-			for(k=0; k< ntbs; k++) printf("\t%s", tbsparamstrs[k] ) ;
-		} */
-//		printf("\n");  for only data
+    while (howmany - count++) {
+        if (*queMarLen > 0) {  // have question marks
+            segsites = gensamWithQM(list, &probss, &tmrca, &ttot, qmRow, qmCol, testLen);
+        } else {
+            segsites = gensam(list, &probss, &tmrca, &ttot);
+        }
 
-
-
-   // printf("3 argc:%d\n", argc);
-//printf("nsam:%d,howmany:%d,singleton:%d,doubleton:%d,otherton:%d,rho:%f\n",pars.cp.nsam,howmany, pars.mfs.singlton,pars.mfs.doubleton,pars.mfs.otherton, pars.cp.r);
-
-
-
-if(*queMarLen > 0) {  // have question marks
-    segsites = gensamWithQM( list, &probss, &tmrca, &ttot, qmRow, qmCol, testLen) ;
-} else {
-    segsites = gensam( list, &probss, &tmrca, &ttot ) ;
-}
-
-      /*  if( pars.mp.timeflag ) fprintf(pf,"time:\t%lf\t%lf\n",tmrca, ttot ) ;
-        if( (segsites > 0 ) || ( pars.mp.theta > 0.0 ) ) {
-   	       if( (pars.mp.segsitesin > 0 ) && ( pars.mp.theta > 0.0 ))
-		       fprintf(pf,"prob: %g\n", probss ) ;
-           fprintf(pf,"segsites: %d\n",segsites);  //for only data
-		   if( segsites > 0 )	fprintf(pf,"positions: ");   // for only data
-		   for( i=0; i<segsites; i++)
-              fprintf(pf,"%6.*lf ", pars.output_precision,posit[i] ); // for only data
-           fprintf(pf,"\n");// for only data 
-	       if( segsites > 0 ) { */
-	         // for(i=0;i<pars.cp.nsam; i++) { fprintf(pf,"%s\n", list[i] ); }
-	   //    }
-	  //  } 
-
-
-
-  //  printf("4 argc:%d\n", argc);
-
-//printf("gensam before:%d", 7);
         yiWanH = 0;
-        //clear
-        memset(segmentList, 0, (unsigned)sLSize*sizeof( char* ) );
+        memset(segmentList, 0, (unsigned)sLSize * sizeof(char*));
 
-
-
-       // if(1) {
-       if(*queMarLen > 0) {  // have question marks
-            for(i=0;i<sLSize; i++) {
+        if (*queMarLen > 0) {  // have question marks
+            for (i = 0; i < sLSize; i++) {
                 tempSam = list[i];
-                if(hasEqualedQM(tempSam, segmentList, sLSize) == 0) {
+                if (hasEqualedQM(tempSam, segmentList, sLSize) == 0) {
                     segmentList[seqListSize(segmentList, sLSize)] = tempSam;
                     yiWanH++;
                 }
             }
         } else {
-            for(i=0;i<sLSize; i++) {
+            for (i = 0; i < sLSize; i++) {
                 tempSam = list[i];
-                if(hasEqualed(tempSam, segmentList, sLSize) == 0) {
+                if (hasEqualed(tempSam, segmentList, sLSize) == 0) {
                     segmentList[seqListSize(segmentList, sLSize)] = tempSam;
                     yiWanH++;
                 }
             }
         }
-        
-        
-   // printf("5 argc:%d\n", argc);
 
-        //fprintf(pf,"H: %d\n", yiWanH);
-        //if(*queMarLen > 0) {  // have question marks only H
-        //    yiWanHaps[dataCount++] = yiWanH;
-        //} else {
-            if(oneOrSix[0] == 1) {
-                yiWanHaps[dataCount++] = yiWanH;   // for simulator
-            } else {
-                sixSS[dataCount++] = yiWanH; // H
+        if (oneOrSix[0] == 1) {
+            yiWanHaps[dataCount++] = yiWanH;   // for simulator
+        } else {
+            sixSS[dataCount++] = yiWanH; // H
 
-                Npi = 0;
-                for(i=0;i<sLSize-1;i++) {
-                    for(j=i+1;j<sLSize;j++) {
-                        Npi++;
-                    }
+            Npi = 0;
+            for (i = 0; i < sLSize - 1; i++) {
+                for (j = i + 1; j < sLSize; j++) {
+                    Npi++;
                 }
-                int tempDiffArr[Npi];
-
-                Npi = 0;
-                Hetero = 0.0;
-                mean_pi = 0.0;
-                sk2 = 0.0;
-                for(i=0;i<sLSize-1;i++) {
-                    for(j=i+1;j<sLSize;j++) {
-                        tempDiff = diff(list[i], list[j]);
-                        tempDiffArr[Npi++] = tempDiff;
-                        mean_pi = mean_pi + tempDiff;
-                        if (tempDiff > 0) { Hetero ++; }
-                    }
-                }
-                Hetero = Hetero/Npi;
-                mean_pi = mean_pi/Npi;
-                
-				/*for(i=0;i<Npi;i++) {
-                    sk2 = sk2 + (tempDiffArr[i]-mean_pi)*(tempDiffArr[i]-mean_pi);
-                }
-                sk2 = sk2/(Npi-1);
-                sixSS[dataCount++] = sk2; // sk2
-				*/
-				
-				
-                sixSS[dataCount++] = Hetero; // Hetero
-
-                // second initial to zero
-                Npi = 0;
-                average_r2 = 0.0;
-                average_sk2 = 0.0;
-                Nmh = 0.0;
-                Nvd = 0.0;
-
-                char tempSeg1[sLSize+1];
-                for(i=0;i<sLSize+1;i++) {
-                  tempSeg1[i] = '\0';
-                }
-                char tempSeg2[sLSize+1];
-                for(i=0;i<sLSize+1;i++) {
-                  tempSeg2[i] = '\0';
-                }
-                //double fiveVal[5] = {0.0, 0.0, 0.0, 0.0, 0.0};
-				double fiveVal[2] = {0.0, 0.0};
-                for(i=0;i<segsites-1;i++) {
-                    for(j=i+1;j<segsites;j++) {
-                        if((list[0][i] != '-') && (list[0][j] != '-')) {
-                            Npi++;
-                            for(ccc=0;ccc<sLSize;ccc++) {
-                                //if(list[ccc][i] == '2') {
-                                //        tempSeg1[ccc] = '1';
-                                //    } else {
-                                        tempSeg1[ccc] = list[ccc][i];
-                                //   }
-                                    //fprintf(pf, "tempSeg1: %s\n", tempSeg1);
-                                //    if(list[ccc][j] == '2') {
-                                //        tempSeg2[ccc] = '1';
-                                //    } else {
-                                        tempSeg2[ccc] = list[ccc][j];
-                                //    }
-                                    //fprintf(pf, "tempSeg2: %s\n", tempSeg2);
-                            }
-                                //printf("strlent strlen(tempSeg1): %d \n", strlen(tempSeg1));
-
-                            fiveStat(fiveVal, tempSeg1, tempSeg2);
-
-                                //	fprintf(pf,"r2: %f, var_pi: %f, LD1: %f,very_diverse_flag: %f, missing_haplotype_flag: %f\n",fiveVal[0], fiveVal[1], fiveVal[2], fiveVal[3], fiveVal[4]);
-
-
-                            average_r2 = average_r2 + fiveVal[0];
-                            average_sk2 = average_sk2 + fiveVal[1];
-                            /*if(fiveVal[3] == 1.0) {
-
-                                Nvd = Nvd + 1.0;
-                                if(fiveVal[4] == 1.0) {
-                                    Nmh = Nmh + 1.0;
-                                }
-                            }*/
-                        }
-                    }
-                }
-
-                average_r2 = average_r2/Npi;
-                average_sk2 = average_sk2/Npi;
-
-                //if(Nvd == 0.0) {
-                //    average_LD1 = 1.0;
-               // } else {
-               //     average_LD1 = average_LD1/Nvd;
-               // }
-
-                sixSS[dataCount++] = average_sk2; // average_sk2
-                sixSS[dataCount++] = average_r2; // average_r2
-                //sixSS[dataCount++] = average_LD1; // average_LD1
             }
-        //}
+            int tempDiffArr[Npi];
 
+            Npi = 0;
+            Hetero = 0.0;
+            mean_pi = 0.0;
+            sk2 = 0.0;
+            for (i = 0; i < sLSize - 1; i++) {
+                for (j = i + 1; j < sLSize; j++) {
+                    tempDiff = diff(list[i], list[j]);
+                    tempDiffArr[Npi++] = tempDiff;
+                    mean_pi = mean_pi + tempDiff;
+                    if (tempDiff > 0) { Hetero++; }
+                }
+            }
+            Hetero = Hetero / Npi;
+            mean_pi = mean_pi / Npi;
 
+            sixSS[dataCount++] = Hetero; // Hetero
+
+            Npi = 0;
+            average_r2 = 0.0;
+            average_sk2 = 0.0;
+            Nmh = 0.0;
+            Nvd = 0.0;
+
+            char tempSeg1[sLSize + 1];
+            for (i = 0; i < sLSize + 1; i++) {
+                tempSeg1[i] = '\0';
+            }
+            char tempSeg2[sLSize + 1];
+            for (i = 0; i < sLSize + 1; i++) {
+                tempSeg2[i] = '\0';
+            }
+
+            double fiveVal[2] = {0.0, 0.0};
+            for (i = 0; i < segsites - 1; i++) {
+                for (j = i + 1; j < segsites; j++) {
+                    if ((list[0][i] != '-') && (list[0][j] != '-')) {
+                        Npi++;
+                        for (ccc = 0; ccc < sLSize; ccc++) {
+                            tempSeg1[ccc] = list[ccc][i];
+                            tempSeg2[ccc] = list[ccc][j];
+                        }
+                        fiveStat(fiveVal, tempSeg1, tempSeg2);
+
+                        average_r2 = average_r2 + fiveVal[0];
+                        average_sk2 = average_sk2 + fiveVal[1];
+                    }
+                }
+            }
+
+            average_r2 = average_r2 / Npi;
+            average_sk2 = average_sk2 / Npi;
+
+            sixSS[dataCount++] = average_sk2; // average_sk2
+            sixSS[dataCount++] = average_r2; // average_r2
+        }
     }
-	if( !pars.commandlineseedflag ) seedit( "end" );
+    if (!pars.commandlineseedflag) seedit("end");
 
-
+    return 0; // 添加返回值
 }
-
 int hasEqualed(char* seq, char**seqList, int sizeOfSL) {
     int flag = 0;
     int i = 0;
@@ -732,263 +647,244 @@ int diff(char* chr1, char* chr2) {
 	return diffNum;
 }
 
+int gensam(char **list, double *pprobss, double *ptmrca, double *pttot) {
+    int nsegs, h, i, k, j, seg, ns, start, end, len, segsit;
+    struct segl *seglst, *segtre_mig(struct c_params *p, int *nsegs); /* used to be: [MAXSEG];  */
+    double nsinv, tseg, tt, ttime(struct node *, int nsam), ttimemf(struct node *, int nsam, int mfreq);
 
-	int
-gensam( char **list, double *pprobss, double *ptmrca, double *pttot )
-{
-	int nsegs, h, i, k, j, seg, ns, start, end, len, segsit ;
-	struct segl *seglst, *segtre_mig(struct c_params *p, int *nsegs ) ; /* used to be: [MAXSEG];  */
-	double nsinv,  tseg, tt, ttime(struct node *, int nsam), ttimemf(struct node *, int nsam, int mfreq) ;
+    // stt is singleton total time of all trees, dtt is doubleton total time of all trees
+    // ott is otherton total time of all trees
+    double stt, dtt, ott;
 
-	//stt is singleton total time of all trees, dtt is doubleton total time of all trees
-	//ott is otherton total time of all trees
-	double stt, dtt, ott;
-
-   	double *pk;
+    double *pk;
     // spk[k] stores total time of total tips in each segment tree, 0=<k<nsegs
-	// dpk[k] stores total time of total nodes (which has two desendents) in each segment tree, 0=<k<nsegs
-	// opk[k] stores total time of total nodes (which has >= three desendents) in each segment tree, 0=<k<nsegs
-	double *spk, *dpk, *opk;
+    // dpk[k] stores total time of total nodes (which has two desendents) in each segment tree, 0=<k<nsegs
+    // opk[k] stores total time of total nodes (which has >= three desendents) in each segment tree, 0=<k<nsegs
+    double *spk, *dpk, *opk;
 
-	int *ss;
-	int *sdouton, *ssinton, *sothton;
+    int *ss;
+    int *sdouton, *ssinton, *sothton;
     int douton, sinton, othton;
-	int segsitesin,nsites, mhlen;
-	double theta, es ;
-	int nsam, mfreq ;
-	void prtree( struct node *ptree, int nsam);
-	int make_gametes(int nsam, int mfreq, double *posit, long int nsites, struct node *ptree, double tt, int newsites, int ns, char **list );
+    int segsitesin, nsites, mhlen;
+    double theta, es;
+    int nsam, mfreq;
+    void prtree(struct node *ptree, int nsam);
+    int make_gametes(int nsam, int mfreq, double *posit, long int nsites, struct node *ptree, double tt, int newsites, int ns, char **list);
     int make_MFSgametes(int nsam, int mfreq, double *posit, long int nsites, struct node *ptree, double sintontt, double doutontt, double othtontt, int stonnewsites, int dtonnewsites, int otonnewsites, int ns, char **list, int loop);
 
- 	void ndes_setup( struct node *, int nsam );
+    void ndes_setup(struct node *, int nsam);
 
     int totalSeg;
     void sdottime(struct node *, int nsam, double* sdot, int unfo);
     void sdottimemf(struct node *, int nsam, double* sdot, int mfreq, int unfo);
     double sdotime[3];
 
-	nsites = pars.cp.nsites ;
-	nsinv = 1./nsites;
+    nsites = pars.cp.nsites;
+    nsinv = 1. / nsites;
 
-	//clock_t starts, finishs;
-	//starts = clock();
-    seglst = segtre_mig(&(pars.cp),  &nsegs ) ;
-  //  finishs = clock();
-  //  double duration = (double)(finishs - starts) / CLOCKS_PER_SEC;
- //   printf( "%f seconds\n", duration );
+    seglst = segtre_mig(&(pars.cp), &nsegs);
 
-
-
-	nsam = pars.cp.nsam;
-	segsitesin = pars.mp.segsitesin ;
-	theta = pars.mp.theta ;
-	mfreq = pars.mp.mfreq ;
+    nsam = pars.cp.nsam;
+    segsitesin = pars.mp.segsitesin;
+    theta = pars.mp.theta;
+    mfreq = pars.mp.mfreq;
     mhlen = pars.mfs.mhlength;
 
-	if( pars.mp.treeflag ) {
-	  	ns = 0 ;
-	    for( seg=0, k=0; k<nsegs; seg=seglst[seg].next, k++) {
-	      if( (pars.cp.r > 0.0 ) || (pars.cp.f > 0.0) ){
-		     end = ( k<nsegs-1 ? seglst[seglst[seg].next].beg -1 : nsites-1 );
-		     start = seglst[seg].beg ;
-		     len = end - start + 1 ;
-		     fprintf(stdout,"[%d]", len);
-	      }
-	      prtree( seglst[seg].ptree, nsam ) ;
-	      if( (segsitesin == 0) && ( theta == 0.0 ) && ( pars.mp.timeflag == 0 ) )
-	  	      free(seglst[seg].ptree) ;
-	    }
-	}
+    if (pars.mp.treeflag) {
+        ns = 0;
+        for (seg = 0, k = 0; k < nsegs; seg = seglst[seg].next, k++) {
+            if ((pars.cp.r > 0.0) || (pars.cp.f > 0.0)) {
+                end = (k < nsegs - 1 ? seglst[seglst[seg].next].beg - 1 : nsites - 1);
+                start = seglst[seg].beg;
+                len = end - start + 1;
+                fprintf(stdout, "[%d]", len);
+            }
+            prtree(seglst[seg].ptree, nsam);
+            if ((segsitesin == 0) && (theta == 0.0) && (pars.mp.timeflag == 0))
+                free(seglst[seg].ptree);
+        }
+    }
 
-	if( pars.mp.timeflag ) {
-      tt = 0.0 ;
-	  for( seg=0, k=0; k<nsegs; seg=seglst[seg].next, k++) {
-		if( mfreq > 1 ) ndes_setup( seglst[seg].ptree, nsam );
-		end = ( k<nsegs-1 ? seglst[seglst[seg].next].beg -1 : nsites-1 );
-		start = seglst[seg].beg ;
-		if( (nsegs==1) || ( ( start <= nsites/2) && ( end >= nsites/2 ) ) )
-		  *ptmrca = (seglst[seg].ptree + 2*nsam-2) -> time ;
-		len = end - start + 1 ;
-		tseg = len/(double)nsites ;
-		if( mfreq == 1 ) tt += ttime(seglst[seg].ptree,nsam)*tseg ;
-		else tt += ttimemf(seglst[seg].ptree,nsam, mfreq)*tseg ;
-		if( (segsitesin == 0) && ( theta == 0.0 )  )
-	  	      free(seglst[seg].ptree) ;
-	    }
-		*pttot = tt ;
-	 }
+    if (pars.mp.timeflag) {
+        tt = 0.0;
+        for (seg = 0, k = 0; k < nsegs; seg = seglst[seg].next, k++) {
+            if (mfreq > 1) ndes_setup(seglst[seg].ptree, nsam);
+            end = (k < nsegs - 1 ? seglst[seglst[seg].next].beg - 1 : nsites - 1);
+            start = seglst[seg].beg;
+            if ((nsegs == 1) || ((start <= nsites / 2) && (end >= nsites / 2)))
+                *ptmrca = (seglst[seg].ptree + 2 * nsam - 2)->time;
+            len = end - start + 1;
+            tseg = len / (double)nsites;
+            if (mfreq == 1) tt += ttime(seglst[seg].ptree, nsam) * tseg;
+            else tt += ttimemf(seglst[seg].ptree, nsam, mfreq) * tseg;
+            if ((segsitesin == 0) && (theta == 0.0))
+                free(seglst[seg].ptree);
+        }
+        *pttot = tt;
+    }
 
-    if(segsitesin == 0) {
-        if((theta > 0.0) && ((pars.mfs.singlton == 0) && (pars.mfs.doubleton == 0) && (pars.mfs.otherton == 0))) {
-            ns = 0 ;
-            for( seg=0, k=0; k<nsegs; seg=seglst[seg].next, k++) {
-                if( mfreq > 1 ) ndes_setup( seglst[seg].ptree, nsam );
-                end = ( k<nsegs-1 ? seglst[seglst[seg].next].beg -1 : nsites-1 );
-                start = seglst[seg].beg ;
-                len = end - start + 1 ;
-                tseg = len*(theta/nsites) ;
-                if( mfreq == 1) tt = ttime(seglst[seg].ptree, nsam);
-                        else tt = ttimemf(seglst[seg].ptree, nsam, mfreq );
-                segsit = poisso( tseg*tt );
-                if( (segsit + ns) >= maxsites ) {
-                    maxsites = segsit + ns + SITESINC ;
-                    posit = (double *)realloc(posit, maxsites*sizeof(double) ) ;
-                      biggerlist(nsam, list) ;
+    if (segsitesin == 0) {
+        if ((theta > 0.0) && ((pars.mfs.singlton == 0) && (pars.mfs.doubleton == 0) && (pars.mfs.otherton == 0))) {
+            ns = 0;
+            for (seg = 0, k = 0; k < nsegs; seg = seglst[seg].next, k++) {
+                if (mfreq > 1) ndes_setup(seglst[seg].ptree, nsam);
+                end = (k < nsegs - 1 ? seglst[seglst[seg].next].beg - 1 : nsites - 1);
+                start = seglst[seg].beg;
+                len = end - start + 1;
+                tseg = len * (theta / nsites);
+                if (mfreq == 1) tt = ttime(seglst[seg].ptree, nsam);
+                else tt = ttimemf(seglst[seg].ptree, nsam, mfreq);
+                segsit = poisso(tseg * tt);
+                if ((segsit + ns) >= maxsites) {
+                    maxsites = segsit + ns + SITESINC;
+                    posit = (double *)realloc(posit, maxsites * sizeof(double));
+                    biggerlist(nsam, list);
                 }
-                make_gametes(nsam,mfreq, posit, mhlen, seglst[seg].ptree,tt, segsit, ns, list );
-                free(seglst[seg].ptree) ;
-                locate(segsit,start*nsinv, len*nsinv,posit+ns);
+                make_gametes(nsam, mfreq, posit, mhlen, seglst[seg].ptree, tt, segsit, ns, list);
+                free(seglst[seg].ptree);
+                locate(segsit, start * nsinv, len * nsinv, posit + ns);
                 ns += segsit;
             }
-        } else if((pars.mfs.singlton > 0) || (pars.mfs.doubleton > 0) || (pars.mfs.otherton > 0)) {
+        } else if ((pars.mfs.singlton > 0) || (pars.mfs.doubleton > 0) || (pars.mfs.otherton > 0)) {
+            douton = pars.mfs.doubleton;
+            sinton = pars.mfs.singlton;
+            othton = pars.mfs.otherton;
 
-             douton = pars.mfs.doubleton;
-             sinton = pars.mfs.singlton;
-             othton = pars.mfs.otherton;
+            // for mfs
+            spk = (double *)malloc((unsigned)(nsegs * sizeof(double)));
+            dpk = (double *)malloc((unsigned)(nsegs * sizeof(double)));
+            opk = (double *)malloc((unsigned)(nsegs * sizeof(double)));
 
-             // for mfs
-             spk = (double *)malloc((unsigned)(nsegs*sizeof(double)));
-             dpk = (double *)malloc((unsigned)(nsegs*sizeof(double)));
-             opk = (double *)malloc((unsigned)(nsegs*sizeof(double)));
+            sdouton = (int *)malloc((unsigned)(nsegs * sizeof(int)));
+            ssinton = (int *)malloc((unsigned)(nsegs * sizeof(int)));
+            sothton = (int *)malloc((unsigned)(nsegs * sizeof(int)));
 
-             sdouton = (int *)malloc((unsigned)(nsegs*sizeof(int)));
-             ssinton = (int *)malloc((unsigned)(nsegs*sizeof(int)));
-             sothton = (int *)malloc((unsigned)(nsegs*sizeof(int)));
+            if ((spk == NULL) || (dpk == NULL) || (opk == NULL) || (ssinton == NULL) || (sdouton == NULL) || (sothton == NULL)) perror("malloc error. gensam.2");
 
-             if( (spk==NULL) || (dpk==NULL) || (opk==NULL) || (ssinton==NULL) || (sdouton==NULL) || (sothton==NULL)) perror("malloc error. gensam.2");
+            stt = 0.0;
+            dtt = 0.0;
+            ott = 0.0;
 
-             stt = 0.0;
-             dtt = 0.0;
-             ott = 0.0;
+            for (seg = 0, k = 0; k < nsegs; seg = seglst[seg].next, k++) {
+                if (mfreq > 1) ndes_setup(seglst[seg].ptree, nsam);
+                end = (k < nsegs - 1 ? seglst[seglst[seg].next].beg - 1 : nsites - 1);
+                start = seglst[seg].beg;
+                len = end - start + 1;
+                tseg = len / (double)nsites;
 
-             for( seg=0, k=0; k<nsegs; seg=seglst[seg].next, k++) {
-
-                if( mfreq > 1 ) ndes_setup( seglst[seg].ptree, nsam );
-                end = ( k<nsegs-1 ? seglst[seglst[seg].next].beg -1 : nsites-1 );
-                start = seglst[seg].beg ;
-                len = end - start + 1 ;
-                tseg = len/(double)nsites ;
-
-                if(mfreq == 1) {
-                    sdottime(seglst[seg].ptree,nsam, sdotime, pars.mfs.unfolded);
+                if (mfreq == 1) {
+                    sdottime(seglst[seg].ptree, nsam, sdotime, pars.mfs.unfolded);
                 } else {
-                    sdottimemf(seglst[seg].ptree,nsam, sdotime, mfreq, pars.mfs.unfolded);
+                    sdottimemf(seglst[seg].ptree, nsam, sdotime, mfreq, pars.mfs.unfolded);
                 }
-               // printf("stime:%f, dtime:%f, xtime:%f\n", sdotime[0], sdotime[1], sdotime[2] );
-                spk[k] = sdotime[0]*tseg;
-                dpk[k] = sdotime[1]*tseg;
-                opk[k] = sdotime[2]*tseg;
+                spk[k] = sdotime[0] * tseg;
+                dpk[k] = sdotime[1] * tseg;
+                opk[k] = sdotime[2] * tseg;
                 stt += spk[k];
                 dtt += dpk[k];
                 ott += opk[k];
+            }
 
+            if (theta > 0.0) {
+                es = theta * (stt + dtt + ott);
+                *pprobss = exp(-es) * pow(es, (double)(douton + sinton + othton)) / segfac;
+            }
 
-              }
+            // for singlton
+            if (stt > 0.0) {
+                for (k = 0; k < nsegs; k++) spk[k] /= stt;
+                // init ssinton, which stores each singleton number in each segment tree
+                mnmial(sinton, nsegs, spk, ssinton);
+            } else {
+                for (k = 0; k < nsegs; k++) ssinton[k] = 0;
+            }
 
-              if( theta > 0.0 ) {
-                es = theta * (stt+dtt+ott);
-                *pprobss = exp( -es )*pow( es, (double)(douton+sinton+othton)) / segfac ;
-              }
+            // for doubleton
+            if (dtt > 0.0) {
+                for (k = 0; k < nsegs; k++) dpk[k] /= dtt;
+                // init douton, which stores each doubleton number in each segment tree
+                mnmial(douton, nsegs, dpk, sdouton);
+            } else {
+                for (k = 0; k < nsegs; k++) sdouton[k] = 0;
+            }
 
-              //for singlton
-	          if(stt > 0.0) {
-                for (k=0;k<nsegs;k++) spk[k] /= stt;
-                //init ssinton, which stores each singleton number in each segment tree
-                mnmial(sinton,nsegs,spk,ssinton);
-              } else {
-                 for( k=0; k<nsegs; k++) ssinton[k] = 0 ;
-              }
+            // for otherton
+            if (ott > 0.0) {
+                for (k = 0; k < nsegs; k++) opk[k] /= ott;
+                mnmial(othton, nsegs, opk, sothton);
+            } else {
+                for (k = 0; k < nsegs; k++) sothton[k] = 0;
+            }
 
-              //for doubleton
-              if(dtt > 0.0) {
-                for (k=0;k<nsegs;k++) dpk[k] /= dtt;
-                //init douton, which stores each doubleton number in each segment tree
-                mnmial(douton,nsegs,dpk,sdouton);
-              } else {
-                for( k=0; k<nsegs; k++) sdouton[k] = 0 ;
-              }
+            ns = 0;
+            for (seg = 0, k = 0; k < nsegs; seg = seglst[seg].next, k++) {
+                end = (k < nsegs - 1 ? seglst[seglst[seg].next].beg - 1 : nsites - 1);
+                start = seglst[seg].beg;
+                len = end - start + 1;
+                tseg = len / (double)nsites;
+                totalSeg = ssinton[k] + sdouton[k] + sothton[k];
 
-              //for otherton
-              if(ott > 0.0) {
-                for (k=0;k<nsegs;k++) opk[k] /= ott;
-                mnmial(othton,nsegs,opk,sothton);
-              } else {
-                for( k=0; k<nsegs; k++) sothton[k] = 0 ;
-              }
+                locate(totalSeg, start * nsinv, len * nsinv, posit + ns);
 
-              ns = 0 ;
-              for( seg=0, k=0; k<nsegs; seg=seglst[seg].next, k++) {
-                 end = ( k<nsegs-1 ? seglst[seglst[seg].next].beg -1 : nsites-1 );
-                 start = seglst[seg].beg ;
-                 len = end - start + 1 ;
-                 tseg = len/(double)nsites;
-                 totalSeg = ssinton[k] + sdouton[k] + sothton[k];
+                make_MFSgametes(nsam, mfreq, posit, mhlen, seglst[seg].ptree, stt * spk[k] / tseg, dtt * dpk[k] / tseg, ott * opk[k] / tseg, ssinton[k], sdouton[k], sothton[k], ns, list, 0);
 
-                 locate(totalSeg, start*nsinv, len*nsinv, posit+ns);
+                ns = ns + totalSeg;
+                free(seglst[seg].ptree);
+            }
 
-                 make_MFSgametes(nsam, mfreq, posit, mhlen, seglst[seg].ptree, stt*spk[k]/tseg, dtt*dpk[k]/tseg, ott*opk[k]/tseg, ssinton[k], sdouton[k], sothton[k], ns, list, 0);
-
-                 ns = ns + totalSeg;
-                 free(seglst[seg].ptree) ;
-              }
-
-              free(spk);
-              free(dpk);
-              free(opk);
-              free(ssinton);
-              free(sdouton);
-              free(sothton);
+            free(spk);
+            free(dpk);
+            free(opk);
+            free(ssinton);
+            free(sdouton);
+            free(sothton);
         }
-    } else if( segsitesin > 0 ) {
+    } else if (segsitesin > 0) {
+        pk = (double *)malloc((unsigned)(nsegs * sizeof(double)));
+        ss = (int *)malloc((unsigned)(nsegs * sizeof(int)));
+        if ((pk == NULL) || (ss == NULL)) perror("malloc error. gensam.2");
 
-        pk = (double *)malloc((unsigned)(nsegs*sizeof(double)));
-        ss = (int *)malloc((unsigned)(nsegs*sizeof(int)));
-        if( (pk==NULL) || (ss==NULL) ) perror("malloc error. gensam.2");
+        tt = 0.0;
+        for (seg = 0, k = 0; k < nsegs; seg = seglst[seg].next, k++) {
+            if (mfreq > 1) ndes_setup(seglst[seg].ptree, nsam);
+            end = (k < nsegs - 1 ? seglst[seglst[seg].next].beg - 1 : nsites - 1);
+            start = seglst[seg].beg;
+            len = end - start + 1;
+            tseg = len / (double)nsites;
+            if (mfreq == 1) pk[k] = ttime(seglst[seg].ptree, nsam) * tseg;
+            else pk[k] = ttimemf(seglst[seg].ptree, nsam, mfreq) * tseg;
+            tt += pk[k];
+        }
+        if (theta > 0.0) {
+            es = theta * tt;
+            *pprobss = exp(-es) * pow(es, (double)segsitesin) / segfac;
+        }
+        if (tt > 0.0) {
+            for (k = 0; k < nsegs; k++) pk[k] /= tt;
+            mnmial(segsitesin, nsegs, pk, ss);
+        } else
+            for (k = 0; k < nsegs; k++) ss[k] = 0;
+        ns = 0;
+        for (seg = 0, k = 0; k < nsegs; seg = seglst[seg].next, k++) {
+            end = (k < nsegs - 1 ? seglst[seglst[seg].next].beg - 1 : nsites - 1);
+            start = seglst[seg].beg;
+            len = end - start + 1;
+            tseg = len / (double)nsites;
 
+            make_gametes(nsam, mfreq, posit, mhlen, seglst[seg].ptree, tt * pk[k] / tseg, ss[k], ns, list);
+            free(seglst[seg].ptree);
+            locate(ss[k], start * nsinv, len * nsinv, posit + ns);
 
-        tt = 0.0 ;
-      for( seg=0, k=0; k<nsegs; seg=seglst[seg].next, k++) {
-        if( mfreq > 1 ) ndes_setup( seglst[seg].ptree, nsam );
-        end = ( k<nsegs-1 ? seglst[seglst[seg].next].beg -1 : nsites-1 );
-        start = seglst[seg].beg ;
-        len = end - start + 1 ;
-        tseg = len/(double)nsites ;
-               if( mfreq == 1 ) pk[k] = ttime(seglst[seg].ptree,nsam)*tseg ;
-               else pk[k] = ttimemf(seglst[seg].ptree,nsam, mfreq)*tseg ;
-                 tt += pk[k] ;
-      }
-	  if( theta > 0.0 ) {
-	    es = theta * tt ;
-	    *pprobss = exp( -es )*pow( es, (double) segsitesin) / segfac ;
-	  }
-	  if( tt > 0.0 ) {
-          for (k=0;k<nsegs;k++) pk[k] /= tt ;
-          mnmial(segsitesin,nsegs,pk,ss);
-	  }
-	  else
-            for( k=0; k<nsegs; k++) ss[k] = 0 ;
-	  ns = 0 ;
-	  for( seg=0, k=0; k<nsegs; seg=seglst[seg].next, k++) {
-		 end = ( k<nsegs-1 ? seglst[seglst[seg].next].beg -1 : nsites-1 );
-		 start = seglst[seg].beg ;
-		 len = end - start + 1 ;
-		 tseg = len/(double)nsites;
-
-		 make_gametes(nsam,mfreq, posit, mhlen, seglst[seg].ptree,tt*pk[k]/tseg, ss[k], ns, list);
-		 free(seglst[seg].ptree) ;
-		 locate(ss[k],start*nsinv, len*nsinv,posit+ns);
-
-		 ns += ss[k] ;
-	  }
-	  free(pk);
-	  free(ss);
-
+            ns += ss[k];
+        }
+        free(pk);
+        free(ss);
     }
-	for(i=0;i<nsam;i++) list[i][ns] = '\0' ;
-	if(pars.mfs.moreLength > 0) {
-        for(i=nsam;i<nsam*2;i++) list[i][ns] = '\0' ;
-	}
-	return( ns ) ;
+    for (i = 0; i < nsam; i++) list[i][ns] = '\0';
+    if (pars.mfs.moreLength > 0) {
+        for (i = nsam; i < nsam * 2; i++) list[i][ns] = '\0';
+    }
+    return (ns);
 }
 
 
@@ -1172,18 +1068,16 @@ gensamWithQM( char **list, double *pprobss, double *ptmrca, double *pttot, int *
 #define STAR   '-'
 #define QUMA   '?'
 
-int
-make_MFSgametesQM(int nsam, double *posit, long int mhlen, struct node *ptree, double* sdoTemTime, int* sdoTemSite, int ns, char **list, int* currTreRow, int* currTreCol, int currTreLen)
-{
-	int  tip, j, i, node, ttsites, randomN, lastNode;
-	double y, ran1(), randN;
+int make_MFSgametesQM(int nsam, double *posit, long int mhlen, struct node *ptree, double* sdoTemTime, int* sdoTemSite, int ns, char **list, int* currTreRow, int* currTreCol, int currTreLen) {
+    int tip, j, i, node, ttsites, randomN, lastNode;
+    double y, ran1(), randN;
     int pickb_StonQM(int nsam, struct node *ptree, double tt);
     int pickb_DtonQM(int nsam, struct node *ptree, double tt);
     int pickb_OtonQM(int nsam, struct node *ptree, double tt);
     double sintontt, doutontt, othtontt;
     int stonnewsites, dtonnewsites, otonnewsites;
     int currSiteNsam = 0;
-    int k=0, cc=0, ccnn=0;
+    int k = 0, cc = 0, ccnn = 0;
     double st = 0.0, dt = 0.0, ot = 0.0;
     int nc = 0, ancest = 0;
 
@@ -1195,172 +1089,162 @@ make_MFSgametesQM(int nsam, double *posit, long int mhlen, struct node *ptree, d
     dtonnewsites = sdoTemSite[1];
     otonnewsites = sdoTemSite[2];
 
-	// for( tip=0; tip < 2*nsam-1 ; tip++) {
- //   printf("node: %d, parent: %d, time: %f, nc: %d\n", tip, (ptree+tip)->abv, (ptree + (ptree+tip)->abv )->time - (ptree+tip)->time, (ptree+tip)->ncs);
- //  }
-
     lastNode = -1;
 
     j = ns;
-    ttsites = stonnewsites+dtonnewsites+otonnewsites;
-    while(ttsites>0) {
+    ttsites = stonnewsites + dtonnewsites + otonnewsites;
+    while (ttsites > 0) {
         st = 0.0;
         dt = 0.0;
         ot = 0.0;
 
         currSiteNsam = 0;
-        for(i=0;i<currTreLen;i++) {
-            if(currTreCol[i] == j) {
+        for (i = 0; i < currTreLen; i++) {
+            if (currTreCol[i] == j) {
                 currSiteNsam++;
             }
         }
 
-        if(currSiteNsam > 0) { // there are some question marks for this site
+        if (currSiteNsam > 0) { // there are some question marks for this site
             int currSams[currSiteNsam];
 
             currSiteNsam = 0;
-            for(i=0;i<currTreLen;i++) {
-                if(currTreCol[i] == j) {
+            for (i = 0; i < currTreLen; i++) {
+                if (currTreCol[i] == j) {
                     currSams[currSiteNsam++] = currTreRow[i];
                 }
             }
 
-            //update ncs with question marks
-            for( i=0; i<2*nsam-2; i++) (ptree+i)->ncs = 0;
-            for( i=0; i<2*nsam-2; i++) (ptree+i)->masked = 0; // very important
+            // update ncs with question marks
+            for (i = 0; i < 2 * nsam - 2; i++) (ptree + i)->ncs = 0;
+            for (i = 0; i < 2 * nsam - 2; i++) (ptree + i)->masked = 0; // very important
 
-
-            for( tip=0; tip < nsam; tip++) {
-                for(i=0;i<currSiteNsam;i++) {
-                    if(currSams[i] == tip) {
-                        (ptree+tip)->masked = 1; // the leaf is masked
-                      //  (ptree+(ptree+tip)->abv)->masked = 1; // the direct parent of masked leaf is masked
+            for (tip = 0; tip < nsam; tip++) {
+                for (i = 0; i < currSiteNsam; i++) {
+                    if (currSams[i] == tip) {
+                        (ptree + tip)->masked = 1; // the leaf is masked
                         break;
                     }
                 }
 
-                if(!((ptree+tip)->masked)) { // update ncs
-                    k = (ptree+tip)->abv;
-                    while(k < 2*nsam-2) {
-                        cc = (ptree+k) -> ncs;
-                        (ptree+k) -> ncs = cc+1;
-                        k = (ptree+k)->abv;
+                if (!((ptree + tip)->masked)) { // update ncs
+                    k = (ptree + tip)->abv;
+                    while (k < 2 * nsam - 2) {
+                        cc = (ptree + k)->ncs;
+                        (ptree + k)->ncs = cc + 1;
+                        k = (ptree + k)->abv;
                     }
                 }
             }
 
-	// for( tip=0; tip < 2*nsam-1 ; tip++) {
-   // printf("node: %d, parent: %d, time: %f, nc: %d, masked: %d\n", tip, (ptree+tip)->abv, (ptree + (ptree+tip)->abv )->time - (ptree+tip)->time, (ptree+tip)->ncs, (ptree+tip)->masked);
-  // }
-            for( i=0; i<2*nsam-2; i++) {
-                if((ptree+i)->masked == 1) {
+            for (i = 0; i < 2 * nsam - 2; i++) {
+                if ((ptree + i)->masked == 1) {
                     continue;
                 }
 
-                nc = (ptree+i)->ncs;
+                nc = (ptree + i)->ncs;
 
-                if(pars.mfs.unfolded != 1) { // folded
-                    if(nc == 0) {
-                        st += (ptree + (ptree+i)->abv )->time - (ptree+i)->time; // singleton
-                        (ptree+i)->masked = 1;
-                        ancest = (ptree+i)->abv;
-                        while(ancest < 2*nsam-2) {
-                            ccnn = (ptree+ancest) -> ncs;
-                            if(ccnn > 1) {
+                if (pars.mfs.unfolded != 1) { // folded
+                    if (nc == 0) {
+                        st += (ptree + (ptree + i)->abv)->time - (ptree + i)->time; // singleton
+                        (ptree + i)->masked = 1;
+                        ancest = (ptree + i)->abv;
+                        while (ancest < 2 * nsam - 2) {
+                            ccnn = (ptree + ancest)->ncs;
+                            if (ccnn > 1) {
                                 break;
                             }
-                            if((ccnn == 1) && ((ptree+ancest)->masked == 0)) { //if(ccnn == 1) {
-                                st += (ptree + (ptree+ancest)->abv )->time - (ptree+ancest)->time; // singleton
-                                (ptree+ancest)->masked = 1;
+                            if ((ccnn == 1) && ((ptree + ancest)->masked == 0)) {
+                                st += (ptree + (ptree + ancest)->abv)->time - (ptree + ancest)->time; // singleton
+                                (ptree + ancest)->masked = 1;
                             }
-                            ancest = (ptree+ancest)->abv;
+                            ancest = (ptree + ancest)->abv;
                         }
-                    } else if(nc == (nsam-1)) {
-                        st += (ptree + (ptree+i)->abv )->time - (ptree+i)->time; // singleton
-                        (ptree+i)->masked = 1;
-                        ancest = (ptree+i)->abv;
-                        while(ancest < 2*nsam-2) {
-                            ccnn = (ptree+ancest) -> ncs;
-                            if(ccnn > (nsam-1)) {
+                    } else if (nc == (nsam - 1)) {
+                        st += (ptree + (ptree + i)->abv)->time - (ptree + i)->time; // singleton
+                        (ptree + i)->masked = 1;
+                        ancest = (ptree + i)->abv;
+                        while (ancest < 2 * nsam - 2) {
+                            ccnn = (ptree + ancest)->ncs;
+                            if (ccnn > (nsam - 1)) {
                                 break;
                             }
-                            if((ccnn == (nsam-1)) && ((ptree+ancest)->masked == 0)) { // if(ccnn == (nsam-1)) {
-                                st += (ptree + (ptree+ancest)->abv )->time - (ptree+ancest)->time; // singleton
-                                (ptree+ancest)->masked = 1;
+                            if ((ccnn == (nsam - 1)) && ((ptree + ancest)->masked == 0)) {
+                                st += (ptree + (ptree + ancest)->abv)->time - (ptree + ancest)->time; // singleton
+                                (ptree + ancest)->masked = 1;
                             }
-                            ancest = (ptree+ancest)->abv;
+                            ancest = (ptree + ancest)->abv;
                         }
-                    } else if(nc == 2) {
-                        dt += (ptree + (ptree+i)->abv )->time - (ptree+i)->time; // doubleton
-                        (ptree+i)->masked = 1;
-                        ancest = (ptree+i)->abv;
-                        while(ancest < 2*nsam-2) {
-                            ccnn = (ptree+ancest) -> ncs;
-                            if(ccnn > 2) {
+                    } else if (nc == 2) {
+                        dt += (ptree + (ptree + i)->abv)->time - (ptree + i)->time; // doubleton
+                        (ptree + i)->masked = 1;
+                        ancest = (ptree + i)->abv;
+                        while (ancest < 2 * nsam - 2) {
+                            ccnn = (ptree + ancest)->ncs;
+                            if (ccnn > 2) {
                                 break;
                             }
-                            if((ccnn == 2) && ((ptree+ancest)->masked == 0)) {   // if(ccnn == 2) {
-                                dt += (ptree + (ptree+ancest)->abv )->time - (ptree+ancest)->time; // doubleton
-                                (ptree+ancest)->masked = 1;
+                            if ((ccnn == 2) && ((ptree + ancest)->masked == 0)) {
+                                dt += (ptree + (ptree + ancest)->abv)->time - (ptree + ancest)->time; // doubleton
+                                (ptree + ancest)->masked = 1;
                             }
-                            ancest = (ptree+ancest)->abv;
+                            ancest = (ptree + ancest)->abv;
                         }
-                    } else if(nc == (nsam-2)) {
-                        dt += (ptree + (ptree+i)->abv )->time - (ptree+i)->time; // doubleton
-                        (ptree+i)->masked = 1;
-                        ancest = (ptree+i)->abv;
-                        while(ancest < 2*nsam-2) {
-                            ccnn = (ptree+ancest) -> ncs;
-                            if(ccnn > (nsam-2)) {
+                    } else if (nc == (nsam - 2)) {
+                        dt += (ptree + (ptree + i)->abv)->time - (ptree + i)->time; // doubleton
+                        (ptree + i)->masked = 1;
+                        ancest = (ptree + i)->abv;
+                        while (ancest < 2 * nsam - 2) {
+                            ccnn = (ptree + ancest)->ncs;
+                            if (ccnn > (nsam - 2)) {
                                 break;
                             }
-                            if((ccnn == (nsam-2)) && ((ptree+ancest)->masked == 0)) {  //if(ccnn == (nsam-2)) {
-                                dt += (ptree + (ptree+ancest)->abv )->time - (ptree+ancest)->time; // doubleton
-                                (ptree+ancest)->masked = 1;
+                            if ((ccnn == (nsam - 2)) && ((ptree + ancest)->masked == 0)) {
+                                dt += (ptree + (ptree + ancest)->abv)->time - (ptree + ancest)->time; // doubleton
+                                (ptree + ancest)->masked = 1;
                             }
-                            ancest = (ptree+ancest)->abv;
+                            ancest = (ptree + ancest)->abv;
                         }
                     } else {
-                        ot += (ptree + (ptree+i)->abv )->time - (ptree+i)->time; // xton
-                        (ptree+i)->masked = 1;
-                        ancest = (ptree+i)->abv;
-                        while(ancest < 2*nsam-2) {
-                            ccnn = (ptree+ancest) -> ncs;
-                            if((ccnn == (nsam-1)) || (ccnn == (nsam-2))) {
+                        ot += (ptree + (ptree + i)->abv)->time - (ptree + i)->time; // xton
+                        (ptree + i)->masked = 1;
+                        ancest = (ptree + i)->abv;
+                        while (ancest < 2 * nsam - 2) {
+                            ccnn = (ptree + ancest)->ncs;
+                            if ((ccnn == (nsam - 1)) || (ccnn == (nsam - 2))) {
                                 break;
                             }
-                            if((ccnn >= 3) && (ccnn != (nsam-1)) && (ccnn != (nsam-2)) && ((ptree+ancest)->masked == 0)) {  // if((ccnn >= 3) && (ccnn != (nsam-1)) && (ccnn != (nsam-2))) {
-                                ot += (ptree + (ptree+ancest)->abv )->time - (ptree+ancest)->time; // xton
-                                (ptree+ancest)->masked = 1;
+                            if ((ccnn >= 3) && (ccnn != (nsam - 1)) && (ccnn != (nsam - 2)) && ((ptree + ancest)->masked == 0)) {
+                                ot += (ptree + (ptree + ancest)->abv)->time - (ptree + ancest)->time; // xton
+                                (ptree + ancest)->masked = 1;
                             }
-                            ancest = (ptree+ancest)->abv;
+                            ancest = (ptree + ancest)->abv;
                         }
                     }
                 }
             }
 
-            for( i=0; i<2*nsam-2; i++) (ptree+i)->masked = 0; // very important
-            for( tip=0; tip < nsam; tip++) {
-                for(i=0;i<currSiteNsam;i++) {
-                    if(currSams[i] == tip) {
-                        (ptree+tip)->masked = 1; // the leaf is masked
-                      //  (ptree+(ptree+tip)->abv)->masked = 1; // the direct parent of masked leaf is masked
+            for (i = 0; i < 2 * nsam - 2; i++) (ptree + i)->masked = 0; // very important
+            for (tip = 0; tip < nsam; tip++) {
+                for (i = 0; i < currSiteNsam; i++) {
+                    if (currSams[i] == tip) {
+                        (ptree + tip)->masked = 1; // the leaf is masked
                         break;
                     }
                 }
             }
 
         } else {
-            //update ncs with question marks
-            for( i=0; i<2*nsam-2; i++) (ptree+i)->ncs = 0;
-            for( i=0; i<2*nsam-2; i++) (ptree+i)->masked = 0; // very important
+            // update ncs with question marks
+            for (i = 0; i < 2 * nsam - 2; i++) (ptree + i)->ncs = 0;
+            for (i = 0; i < 2 * nsam - 2; i++) (ptree + i)->masked = 0; // very important
 
-            for( tip=0; tip < nsam; tip++) {
-                k = (ptree+tip)->abv;
-                while(k < 2*nsam-2) {
-                    cc = (ptree+k) -> ncs;
-                    (ptree+k) -> ncs = cc+1;
-                    k = (ptree+k)->abv;
+            for (tip = 0; tip < nsam; tip++) {
+                k = (ptree + tip)->abv;
+                while (k < 2 * nsam - 2) {
+                    cc = (ptree + k)->ncs;
+                    (ptree + k)->ncs = cc + 1;
+                    k = (ptree + k)->abv;
                 }
             }
 
@@ -1369,14 +1253,11 @@ make_MFSgametesQM(int nsam, double *posit, long int mhlen, struct node *ptree, d
             ot = othtontt;
         }
 
-//	 for( tip=0; tip < 2*nsam-1 ; tip++) {
- //   printf("node: %d, parent: %d, time: %f, nc: %d, masked: %d\n", tip, (ptree+tip)->abv, (ptree + (ptree+tip)->abv )->time - (ptree+tip)->time, (ptree+tip)->ncs, (ptree+tip)->masked);
- //  }
-        randomN = (int)(1+ran1()*ttsites);
-        if(randomN <= stonnewsites) {
+        randomN = (int)(1 + ran1() * ttsites);
+        if (randomN <= stonnewsites) {
             stonnewsites--;
             node = pickb_StonQM(nsam, ptree, st);
-        } else if(randomN <= stonnewsites+dtonnewsites) {
+        } else if (randomN <= stonnewsites + dtonnewsites) {
             dtonnewsites--;
             node = pickb_DtonQM(nsam, ptree, dt);
         } else {
@@ -1384,21 +1265,22 @@ make_MFSgametesQM(int nsam, double *posit, long int mhlen, struct node *ptree, d
             node = pickb_OtonQM(nsam, ptree, ot);
         }
 
-//printf("node: %d", 1111111);
         // when have question marks, there are not multiple hit
-        for(tip=0; tip < nsam ; tip++) {
-            if((ptree+tip)->masked == 1) {
-                list[tip][j] = QUMA;
-            } else if( tdesn(ptree, tip, node) ) {
-                list[tip][j] = STATE1 ;
+        for (tip = 0; tip < nsam; tip++) {
+            if ((ptree + tip)->masked == 1) {
+                list[tip][j] = '?';
+            } else if (tdesn(ptree, tip, node)) {
+                list[tip][j] = '1';
             } else {
-                list[tip][j] = STATE0 ;
+                list[tip][j] = '0';
             }
         }
 
         j++;
-        ttsites = stonnewsites+dtonnewsites+otonnewsites;
+        ttsites = stonnewsites + dtonnewsites + otonnewsites;
     }
+
+    return 0; // 添加返回值
 }
 	void
 ndes_setup(struct node *ptree, int nsam )
@@ -1446,409 +1328,435 @@ cmatrix(nsam,len)
 
 
 
-	int
-locate(n,beg,len,ptr)
-	int n;
-	double beg, len, *ptr;
-{
-	int i;
+int locate(int n, double beg, double len, double* ptr) {
+    int i;
 
-	ordran(n,ptr);
-	for(i=0; i<n; i++)
-		ptr[i] = beg + ptr[i]*len ;
+    ordran(n, ptr);
+    for (i = 0; i < n; i++) {
+        ptr[i] = beg + ptr[i] * len;
+    }
 
+    return 0; // 添加返回值
 }
 
 int NSEEDS = 3 ;
 
-  void
-getpars(int argc, char **argv, int *phowmany )
-{
-	int arg, i, j, sum , pop , argstart, npop , npop2, pop2 ;
-	double migr, mij, psize, palpha ;
-	void addtoelist( struct devent *pt, struct devent *elist );
-	void argcheck( int arg, int argc, char ** ) ;
-	int commandlineseed( char ** ) ;
-	void free_eventlist( struct devent *pt, int npop );
-	struct devent *ptemp , *pt ;
-	FILE *pf ;
-	char ch3 ;
+void getpars(int argc, char **argv, int *phowmany) {
+    int arg, i, j, sum, pop, argstart, npop, npop2, pop2;
+    double migr, mij, psize, palpha;
+    void addtoelist(struct devent *pt, struct devent *elist);
+    void argcheck(int arg, int argc, char **);
+    int commandlineseed(char **);
+    void free_eventlist(struct devent *pt, int npop);
+    struct devent *ptemp, *pt;
+    FILE *pf;
+    char ch3;
 
-//printf("in getPars argc:%d\n", argc);
-  if( count == 0 ) {
-	if( argc < 4 ){ fprintf(stderr,"Too few command line arguments\n"); usage();}
-	pars.cp.nsam = atoi( argv[1] );
-//	printf("in getPars  nsam:%d\n", pars.cp.nsam);
-	if( pars.cp.nsam <= 0 ) { fprintf(stderr,"First argument error. nsam <= 0. \n"); usage();}
-	*phowmany = atoi( argv[2] );
-//	printf("in getPars  rep:%d\n", atoi( argv[2] ));
-	if( *phowmany  <= 0 ) { fprintf(stderr,"Second argument error. howmany <= 0. \n"); usage();}
-	pars.commandlineseedflag = 0 ;
-	  pars.output_precision = 4 ;
-	pars.cp.r = pars.mp.theta =  pars.cp.f = 0.0 ;
-	pars.cp.track_len = 0. ;
-	pars.cp.npop = npop = 1 ;
-	pars.cp.mig_mat = (double **)malloc( (unsigned) sizeof( double *) );
-	pars.cp.mig_mat[0] = (double *)malloc( (unsigned)sizeof(double ));
-	pars.cp.mig_mat[0][0] =  0.0 ;
-	pars.mp.segsitesin = 0 ;
+    if (count == 0) {
+        if (argc < 4) {
+            fprintf(stderr, "Too few command line arguments\n");
+            usage();
+        }
+        pars.cp.nsam = atoi(argv[1]);
+        if (pars.cp.nsam <= 0) {
+            fprintf(stderr, "First argument error. nsam <= 0. \n");
+            usage();
+        }
+        *phowmany = atoi(argv[2]);
+        if (*phowmany <= 0) {
+            fprintf(stderr, "Second argument error. howmany <= 0. \n");
+            usage();
+        }
+        pars.commandlineseedflag = 0;
+        pars.output_precision = 4;
+        pars.cp.r = pars.mp.theta = pars.cp.f = 0.0;
+        pars.cp.track_len = 0.;
+        pars.cp.npop = npop = 1;
+        pars.cp.mig_mat = (double **)malloc((unsigned)sizeof(double *));
+        pars.cp.mig_mat[0] = (double *)malloc((unsigned)sizeof(double));
+        pars.cp.mig_mat[0][0] = 0.0;
+        pars.mp.segsitesin = 0;
 
-	//init added arguments
-	pars.mfs.unfolded = 1;
-    pars.mfs.multipleHit = 0;
-    pars.mfs.mhlength = 0;
-    pars.mfs.moreLength = 0;
-    pars.mfs.singlton = 0;
-    pars.mfs.doubleton = 0;
-    pars.mfs.otherton = 0;
+        // init added arguments
+        pars.mfs.unfolded = 1;
+        pars.mfs.multipleHit = 0;
+        pars.mfs.mhlength = 0;
+        pars.mfs.moreLength = 0;
+        pars.mfs.singlton = 0;
+        pars.mfs.doubleton = 0;
+        pars.mfs.otherton = 0;
 
-	pars.mp.treeflag = 0 ;
- 	pars.mp.timeflag = 0 ;
-       pars.mp.mfreq = 1 ;
-	pars.cp.config = (int *) malloc( (unsigned)(( pars.cp.npop +1 ) *sizeof( int)) );
-	(pars.cp.config)[0] = pars.cp.nsam ;
-	pars.cp.size= (double *) malloc( (unsigned)( pars.cp.npop *sizeof( double )) );
-	(pars.cp.size)[0] = 1.0  ;
-	pars.cp.alphag = (double *) malloc( (unsigned)(( pars.cp.npop ) *sizeof( double )) );
-	(pars.cp.alphag)[0] = 0.0  ;
-	pars.cp.nsites = 2 ;
-  }
-  else{
-	npop = pars.cp.npop ;
-	free_eventlist( pars.cp.deventlist, npop );
-  }
-  	pars.cp.deventlist = NULL ;
+        pars.mp.treeflag = 0;
+        pars.mp.timeflag = 0;
+        pars.mp.mfreq = 1;
+        pars.cp.config = (int *)malloc((unsigned)((pars.cp.npop + 1) * sizeof(int)));
+        (pars.cp.config)[0] = pars.cp.nsam;
+        pars.cp.size = (double *)malloc((unsigned)(pars.cp.npop * sizeof(double)));
+        (pars.cp.size)[0] = 1.0;
+        pars.cp.alphag = (double *)malloc((unsigned)((pars.cp.npop) * sizeof(double)));
+        (pars.cp.alphag)[0] = 0.0;
+        pars.cp.nsites = 2;
+    } else {
+        npop = pars.cp.npop;
+        free_eventlist(pars.cp.deventlist, npop);
+    }
+    pars.cp.deventlist = NULL;
 
-	arg = 3 ;
+    arg = 3;
 
-	while( arg < argc ){
-		if( argv[arg][0] != '-' ) { fprintf(stderr," argument should be -%s ?\n", argv[arg]); usage();}
-		switch ( argv[arg][1] ){
-			case 'f' :
-				if( ntbs > 0 ) { fprintf(stderr," can't use tbs args and -f option.\n"); exit(1); }
-				arg++;
-				argcheck( arg, argc, argv);
-				pf = fopen( argv[arg], "r" ) ;
-				if( pf == NULL ) {fprintf(stderr," no parameter file %s\n", argv[arg] ); exit(0);}
-				arg++;
-				argc++ ;
-				argv = (char **)malloc(  (unsigned)(argc+1)*sizeof( char *) ) ;
-				argv[arg] = (char *)malloc( (unsigned)(20*sizeof( char )) ) ;
-				argstart = arg ;
-				while( fscanf(pf," %s", argv[arg]) != EOF ) {
-					arg++;
-					argc++;
-					argv = (char **)realloc( argv, (unsigned)argc*sizeof( char*) ) ;
-				        argv[arg] = (char *)malloc( (unsigned)(20*sizeof( char )) ) ;
-					}
-				fclose(pf);
-				argc--;
-				arg = argstart ;
-				break;
-			case 'r' :
-				arg++;
-				argcheck( arg, argc, argv);
-				pars.cp.r = atof(  argv[arg++] );
-				argcheck( arg, argc, argv);
-				pars.cp.nsites = atoi( argv[arg++]);
-				if( pars.cp.nsites <2 ){
-					fprintf(stderr,"with -r option must specify both rec_rate and nsites>1\n");
-					usage();
-					}
-				break;
-			case 'p' :
-				arg++;
-				argcheck(arg,argc,argv);
-				pars.output_precision = atoi( argv[arg++] ) ;
-				break;
-			case 'c' :
-				arg++;
-				argcheck( arg, argc, argv);
-				pars.cp.f = atof(  argv[arg++] );
-				argcheck( arg, argc, argv);
-				pars.cp.track_len = atof( argv[arg++]);
-				if( pars.cp.track_len <1. ){
-					fprintf(stderr,"with -c option must specify both f and track_len>0\n");
-					usage();
-					}
-				break;
-            case 'Y' :
+    while (arg < argc) {
+        if (argv[arg][0] != '-') {
+            fprintf(stderr, " argument should be -%s ?\n", argv[arg]);
+            usage();
+        }
+        switch (argv[arg][1]) {
+            case 'f':
+                if (ntbs > 0) {
+                    fprintf(stderr, " can't use tbs args and -f option.\n");
+                    exit(1);
+                }
                 arg++;
-                pars.mfs.singlton = atoi( argv[arg++]);
-                pars.mfs.doubleton = atoi( argv[arg++]);
-                pars.mfs.otherton = atoi( argv[arg++]);
-                break;
-            case 'U' :
+                argcheck(arg, argc, argv);
+                pf = fopen(argv[arg], "r");
+                if (pf == NULL) {
+                    fprintf(stderr, " no parameter file %s\n", argv[arg]);
+                    exit(0);
+                }
                 arg++;
-                pars.mfs.unfolded = atoi( argv[arg++]);
+                argc++;
+                argv = (char **)malloc((unsigned)(argc + 1) * sizeof(char *));
+                argv[arg] = (char *)malloc((unsigned)(20 * sizeof(char)));
+                argstart = arg;
+                while (fscanf(pf, " %s", argv[arg]) != EOF) {
+                    arg++;
+                    argc++;
+                    argv = (char **)realloc(argv, (unsigned)argc * sizeof(char *));
+                    argv[arg] = (char *)malloc((unsigned)(20 * sizeof(char)));
+                }
+                fclose(pf);
+                argc--;
+                arg = argstart;
                 break;
-            case 'H' :
+            case 'r':
                 arg++;
-                pars.mfs.multipleHit = atoi( argv[arg++]);
-                pars.mfs.mhlength = atoi( argv[arg++]);
+                argcheck(arg, argc, argv);
+                pars.cp.r = atof(argv[arg++]);
+                argcheck(arg, argc, argv);
+                pars.cp.nsites = atoi(argv[arg++]);
+                if (pars.cp.nsites < 2) {
+                    fprintf(stderr, "with -r option must specify both rec_rate and nsites>1\n");
+                    usage();
+                }
                 break;
-            case 'A' :
+            case 'p':
                 arg++;
-                pars.mfs.moreLength = atoi( argv[arg++]);
+                argcheck(arg, argc, argv);
+                pars.output_precision = atoi(argv[arg++]);
                 break;
-			case 't' :
-				arg++;
-				argcheck( arg, argc, argv);
-				pars.mp.theta = atof(  argv[arg++] );
-				break;
-			case 's' :
-				arg++;
-				argcheck( arg, argc, argv);
-				if( argv[arg-1][2] == 'e' ){  /* command line seeds */
-					pars.commandlineseedflag = 1 ;
-					if( count == 0 ) nseeds = commandlineseed(argv+arg );
-					arg += nseeds ;
-				}
-				else {
-				    pars.mp.segsitesin = atoi(  argv[arg++] );
-				}
-				break;
-			case 'F' :
-				arg++;
-				argcheck( arg, argc, argv);
-				pars.mp.mfreq = atoi(  argv[arg++] );
-                                if( (pars.mp.mfreq < 2 ) || (pars.mp.mfreq > pars.cp.nsam/2 ) ){
-                                    fprintf(stderr," mfreq must be >= 2 and <= nsam/2.\n");
-                                    usage();
+            case 'c':
+                arg++;
+                argcheck(arg, argc, argv);
+                pars.cp.f = atof(argv[arg++]);
+                argcheck(arg, argc, argv);
+                pars.cp.track_len = atof(argv[arg++]);
+                if (pars.cp.track_len < 1.) {
+                    fprintf(stderr, "with -c option must specify both f and track_len>0\n");
+                    usage();
+                }
+                break;
+            case 'Y':
+                arg++;
+                pars.mfs.singlton = atoi(argv[arg++]);
+                pars.mfs.doubleton = atoi(argv[arg++]);
+                pars.mfs.otherton = atoi(argv[arg++]);
+                break;
+            case 'U':
+                arg++;
+                pars.mfs.unfolded = atoi(argv[arg++]);
+                break;
+            case 'H':
+                arg++;
+                pars.mfs.multipleHit = atoi(argv[arg++]);
+                pars.mfs.mhlength = atoi(argv[arg++]);
+                break;
+            case 'A':
+                arg++;
+                pars.mfs.moreLength = atoi(argv[arg++]);
+                break;
+            case 't':
+                arg++;
+                argcheck(arg, argc, argv);
+                pars.mp.theta = atof(argv[arg++]);
+                break;
+            case 's':
+                arg++;
+                argcheck(arg, argc, argv);
+                if (argv[arg - 1][2] == 'e') {  /* command line seeds */
+                    pars.commandlineseedflag = 1;
+                    if (count == 0) nseeds = commandlineseed(argv + arg);
+                    arg += nseeds;
+                } else {
+                    pars.mp.segsitesin = atoi(argv[arg++]);
+                }
+                break;
+            case 'F':
+                arg++;
+                argcheck(arg, argc, argv);
+                pars.mp.mfreq = atoi(argv[arg++]);
+                if ((pars.mp.mfreq < 2) || (pars.mp.mfreq > pars.cp.nsam / 2)) {
+                    fprintf(stderr, " mfreq must be >= 2 and <= nsam/2.\n");
+                    usage();
+                }
+                break;
+            case 'T':
+                pars.mp.treeflag = 1;
+                arg++;
+                break;
+            case 'L':
+                pars.mp.timeflag = 1;
+                arg++;
+                break;
+            case 'I':
+                arg++;
+                if (count == 0) {
+                    argcheck(arg, argc, argv);
+                    pars.cp.npop = atoi(argv[arg]);
+                    pars.cp.config = (int *)realloc(pars.cp.config, (unsigned)(pars.cp.npop * sizeof(int)));
+                    npop = pars.cp.npop;
+                }
+                arg++;
+                for (i = 0; i < pars.cp.npop; i++) {
+                    argcheck(arg, argc, argv);
+                    pars.cp.config[i] = atoi(argv[arg++]);
+                }
+                if (count == 0) {
+                    pars.cp.mig_mat = (double **)realloc(pars.cp.mig_mat, (unsigned)(pars.cp.npop * sizeof(double *)));
+                    pars.cp.mig_mat[0] = (double *)realloc(pars.cp.mig_mat[0], (unsigned)(pars.cp.npop * sizeof(double)));
+                    for (i = 1; i < pars.cp.npop; i++) pars.cp.mig_mat[i] = (double *)malloc((unsigned)(pars.cp.npop * sizeof(double)));
+                    pars.cp.size = (double *)realloc(pars.cp.size, (unsigned)(pars.cp.npop * sizeof(double)));
+                    pars.cp.alphag = (double *)realloc(pars.cp.alphag, (unsigned)(pars.cp.npop * sizeof(double)));
+                    for (i = 1; i < pars.cp.npop; i++) {
+                        (pars.cp.size)[i] = (pars.cp.size)[0];
+                        (pars.cp.alphag)[i] = (pars.cp.alphag)[0];
+                    }
+                }
+                if ((arg < argc) && (argv[arg][0] != '-')) {
+                    argcheck(arg, argc, argv);
+                    migr = atof(argv[arg++]);
+                } else migr = 0.0;
+                for (i = 0; i < pars.cp.npop; i++)
+                    for (j = 0; j < pars.cp.npop; j++) pars.cp.mig_mat[i][j] = migr / (pars.cp.npop - 1);
+                for (i = 0; i < pars.cp.npop; i++) pars.cp.mig_mat[i][i] = migr;
+                break;
+            case 'm':
+                if (npop < 2) {
+                    fprintf(stderr, "Must use -I option first.\n");
+                    usage();
+                }
+                if (argv[arg][2] == 'a') {
+                    arg++;
+                    for (pop = 0; pop < npop; pop++)
+                        for (pop2 = 0; pop2 < npop; pop2++) {
+                            argcheck(arg, argc, argv);
+                            pars.cp.mig_mat[pop][pop2] = atof(argv[arg++]);
+                        }
+                    for (pop = 0; pop < npop; pop++) {
+                        pars.cp.mig_mat[pop][pop] = 0.0;
+                        for (pop2 = 0; pop2 < npop; pop2++) {
+                            if (pop2 != pop) pars.cp.mig_mat[pop][pop] += pars.cp.mig_mat[pop][pop2];
+                        }
+                    }
+                } else {
+                    arg++;
+                    argcheck(arg, argc, argv);
+                    i = atoi(argv[arg++]) - 1;
+                    argcheck(arg, argc, argv);
+                    j = atoi(argv[arg++]) - 1;
+                    argcheck(arg, argc, argv);
+                    mij = atof(argv[arg++]);
+                    pars.cp.mig_mat[i][i] += mij - pars.cp.mig_mat[i][j];
+                    pars.cp.mig_mat[i][j] = mij;
+                }
+                break;
+            case 'n':
+                if (npop < 2) {
+                    fprintf(stderr, "Must use -I option first.\n");
+                    usage();
+                }
+                arg++;
+                argcheck(arg, argc, argv);
+                pop = atoi(argv[arg++]) - 1;
+                argcheck(arg, argc, argv);
+                psize = atof(argv[arg++]);
+                pars.cp.size[pop] = psize;
+                break;
+            case 'g':
+                if (npop < 2) {
+                    fprintf(stderr, "Must use -I option first.\n");
+                    usage();
+                }
+                arg++;
+                argcheck(arg, argc, argv);
+                pop = atoi(argv[arg++]) - 1;
+                if (arg >= argc) {
+                    fprintf(stderr, "Not enough arg's after -G.\n");
+                    usage();
+                }
+                palpha = atof(argv[arg++]);
+                pars.cp.alphag[pop] = palpha;
+                break;
+            case 'G':
+                arg++;
+                if (arg >= argc) {
+                    fprintf(stderr, "Not enough arg's after -G.\n");
+                    usage();
+                }
+                palpha = atof(argv[arg++]);
+                for (i = 0; i < pars.cp.npop; i++)
+                    pars.cp.alphag[i] = palpha;
+                break;
+            case 'e':
+                pt = (struct devent *)malloc(sizeof(struct devent));
+                pt->detype = argv[arg][2];
+                ch3 = argv[arg][3];
+                arg++;
+                argcheck(arg, argc, argv);
+                pt->time = atof(argv[arg++]);
+                pt->nextde = NULL;
+                if (pars.cp.deventlist == NULL)
+                    pars.cp.deventlist = pt;
+                else if (pt->time < pars.cp.deventlist->time) {
+                    ptemp = pars.cp.deventlist;
+                    pars.cp.deventlist = pt;
+                    pt->nextde = ptemp;
+                } else
+                    addtoelist(pt, pars.cp.deventlist);
+                switch (pt->detype) {
+                    case 'N':
+                        argcheck(arg, argc, argv);
+                        pt->paramv = atof(argv[arg++]);
+                        break;
+                    case 'G':
+                        if (arg >= argc) {
+                            fprintf(stderr, "Not enough arg's after -eG.\n");
+                            usage();
+                        }
+                        pt->paramv = atof(argv[arg++]);
+                        break;
+                    case 'M':
+                        argcheck(arg, argc, argv);
+                        pt->paramv = atof(argv[arg++]);
+                        break;
+                    case 'n':
+                        argcheck(arg, argc, argv);
+                        pt->popi = atoi(argv[arg++]) - 1;
+                        argcheck(arg, argc, argv);
+                        pt->paramv = atof(argv[arg++]);
+                        break;
+                    case 'g':
+                        argcheck(arg, argc, argv);
+                        pt->popi = atoi(argv[arg++]) - 1;
+                        if (arg >= argc) {
+                            fprintf(stderr, "Not enough arg's after -eg.\n");
+                            usage();
+                        }
+                        pt->paramv = atof(argv[arg++]);
+                        break;
+                    case 's':
+                        argcheck(arg, argc, argv);
+                        pt->popi = atoi(argv[arg++]) - 1;
+                        argcheck(arg, argc, argv);
+                        pt->paramv = atof(argv[arg++]);
+                        break;
+                    case 'm':
+                        if (ch3 == 'a') {
+                            pt->detype = 'a';
+                            argcheck(arg, argc, argv);
+                            npop2 = atoi(argv[arg++]);
+                            pt->mat = (double **)malloc((unsigned)npop2 * sizeof(double *));
+                            for (pop = 0; pop < npop2; pop++) {
+                                (pt->mat)[pop] = (double *)malloc((unsigned)npop2 * sizeof(double));
+                                for (i = 0; i < npop2; i++) {
+                                    if (i == pop) arg++;
+                                    else {
+                                        argcheck(arg, argc, argv);
+                                        (pt->mat)[pop][i] = atof(argv[arg++]);
                                     }
-				break;
-			case 'T' :
-				pars.mp.treeflag = 1 ;
-				arg++;
-				break;
-			case 'L' :
-				pars.mp.timeflag = 1 ;
-				arg++;
-				break;
-			case 'I' :
-			    arg++;
-			    if( count == 0 ) {
-				argcheck( arg, argc, argv);
-			       	pars.cp.npop = atoi( argv[arg]);
-			        pars.cp.config = (int *) realloc( pars.cp.config, (unsigned)( pars.cp.npop*sizeof( int)));
-				npop = pars.cp.npop ;
-				}
-			    arg++;
-			    for( i=0; i< pars.cp.npop; i++) {
-				argcheck( arg, argc, argv);
-				pars.cp.config[i] = atoi( argv[arg++]);
-				}
-			    if( count == 0 ){
-				pars.cp.mig_mat =
-                                        (double **)realloc(pars.cp.mig_mat, (unsigned)(pars.cp.npop*sizeof(double *) )) ;
-				pars.cp.mig_mat[0] =
-                                         (double *)realloc(pars.cp.mig_mat[0], (unsigned)( pars.cp.npop*sizeof(double)));
-				for(i=1; i<pars.cp.npop; i++) pars.cp.mig_mat[i] =
-                                         (double *)malloc( (unsigned)( pars.cp.npop*sizeof(double)));
-				pars.cp.size = (double *)realloc( pars.cp.size, (unsigned)( pars.cp.npop*sizeof( double )));
-				pars.cp.alphag =
-                                          (double *) realloc( pars.cp.alphag, (unsigned)( pars.cp.npop*sizeof( double )));
-			        for( i=1; i< pars.cp.npop ; i++) {
-				   (pars.cp.size)[i] = (pars.cp.size)[0]  ;
-				   (pars.cp.alphag)[i] = (pars.cp.alphag)[0] ;
-				   }
-			        }
-			     if( (arg <argc) && ( argv[arg][0] != '-' ) ) {
-				argcheck( arg, argc, argv);
-				migr = atof(  argv[arg++] );
-				}
-			     else migr = 0.0 ;
-			     for( i=0; i<pars.cp.npop; i++)
-				    for( j=0; j<pars.cp.npop; j++) pars.cp.mig_mat[i][j] = migr/(pars.cp.npop-1) ;
-			     for( i=0; i< pars.cp.npop; i++) pars.cp.mig_mat[i][i] = migr ;
-			     break;
-			case 'm' :
-			     if( npop < 2 ) { fprintf(stderr,"Must use -I option first.\n"); usage();}
-			     if( argv[arg][2] == 'a' ) {
-				    arg++;
-				    for( pop = 0; pop <npop; pop++)
-				      for( pop2 = 0; pop2 <npop; pop2++){
-					     argcheck( arg, argc, argv);
-					     pars.cp.mig_mat[pop][pop2]= atof( argv[arg++] ) ;
-					  }
-				    for( pop = 0; pop < npop; pop++) {
-					  pars.cp.mig_mat[pop][pop] = 0.0 ;
-					  for( pop2 = 0; pop2 < npop; pop2++){
-					    if( pop2 != pop ) pars.cp.mig_mat[pop][pop] += pars.cp.mig_mat[pop][pop2] ;
-					  }
-				    }
-				}
-			    else {
-		             arg++;
-			         argcheck( arg, argc, argv);
-		             i = atoi( argv[arg++] ) -1;
-			         argcheck( arg, argc, argv);
-		             j = atoi( argv[arg++] ) -1;
-			         argcheck( arg, argc, argv);
-		             mij = atof( argv[arg++] );
-		             pars.cp.mig_mat[i][i] += mij -  pars.cp.mig_mat[i][j]  ;
-		             pars.cp.mig_mat[i][j] = mij;
-			    }
-				break;
-			case 'n' :
-			     if( npop < 2 ) { fprintf(stderr,"Must use -I option first.\n"); usage();}
-			    arg++;
-			    argcheck( arg, argc, argv);
-			    pop = atoi( argv[arg++] ) -1;
-			    argcheck( arg, argc, argv);
-			    psize = atof( argv[arg++] );
-			    pars.cp.size[pop] = psize ;
-			   break;
-			case 'g' :
-			     if( npop < 2 ) { fprintf(stderr,"Must use -I option first.\n"); usage();}
-			    arg++;
-			    argcheck( arg, argc, argv);
-			    pop = atoi( argv[arg++] ) -1;
-			    if( arg >= argc ) { fprintf(stderr,"Not enough arg's after -G.\n"); usage(); }
-			    palpha = atof( argv[arg++] );
-			    pars.cp.alphag[pop] = palpha ;
-			   break;
-			case 'G' :
-			    arg++;
-			    if( arg >= argc ) { fprintf(stderr,"Not enough arg's after -G.\n"); usage(); }
-			    palpha = atof( argv[arg++] );
-			    for( i=0; i<pars.cp.npop; i++)
-			       pars.cp.alphag[i] = palpha ;
-			   break;
-			case 'e' :
-			    pt = (struct devent *)malloc( sizeof( struct devent) ) ;
-			    pt->detype = argv[arg][2] ;
-			    ch3 = argv[arg][3] ;
-			    arg++;
-			    argcheck( arg, argc, argv);
-			    pt->time = atof( argv[arg++] ) ;
-			    pt->nextde = NULL ;
-			    if( pars.cp.deventlist == NULL )
-				    pars.cp.deventlist = pt ;
-			    else if ( pt->time < pars.cp.deventlist->time ) {
-				    ptemp = pars.cp.deventlist ;
-				    pars.cp.deventlist = pt ;
-				    pt->nextde = ptemp ;
-				}
-			    else
-				   addtoelist( pt, pars.cp.deventlist ) ;
-			    switch( pt->detype ) {
-				case 'N' :
-			          argcheck( arg, argc, argv);
-				      pt->paramv = atof( argv[arg++] ) ;
-				      break;
-				case 'G' :
-				  if( arg >= argc ) { fprintf(stderr,"Not enough arg's after -eG.\n"); usage(); }
-				  pt->paramv = atof( argv[arg++] ) ;
-				  break;
-				case 'M' :
-				    argcheck( arg, argc, argv);
-				    pt->paramv = atof( argv[arg++] ) ;
-				    break;
-				case 'n' :
-			          argcheck( arg, argc, argv);
-				  pt->popi = atoi( argv[arg++] ) -1 ;
-			          argcheck( arg, argc, argv);
-				  pt->paramv = atof( argv[arg++] ) ;
-				  break;
-				case 'g' :
-			          argcheck( arg, argc, argv);
-				  pt->popi = atoi( argv[arg++] ) -1 ;
-				  if( arg >= argc ) { fprintf(stderr,"Not enough arg's after -eg.\n"); usage(); }
-				  pt->paramv = atof( argv[arg++] ) ;
-				  break;
-				case 's' :
-			          argcheck( arg, argc, argv);
-				  pt->popi = atoi( argv[arg++] ) -1 ;
-			          argcheck( arg, argc, argv);
-				  pt->paramv = atof( argv[arg++] ) ;
-				  break;
-				case 'm' :
-				  if( ch3 == 'a' ) {
-				     pt->detype = 'a' ;
-				     argcheck( arg, argc, argv);
-				     npop2 = atoi( argv[arg++] ) ;
-				     pt->mat = (double **)malloc( (unsigned)npop2*sizeof( double *) ) ;
-				     for( pop =0; pop <npop2; pop++){
-					   (pt->mat)[pop] = (double *)malloc( (unsigned)npop2*sizeof( double) );
-					   for( i=0; i<npop2; i++){
-					     if( i == pop ) arg++;
-					     else {
-				               argcheck( arg, argc, argv);
-					       (pt->mat)[pop][i] = atof( argv[arg++] ) ;
-					     }
-					   }
-				     }
-				     for( pop = 0; pop < npop2; pop++) {
-					    (pt->mat)[pop][pop] = 0.0 ;
-					    for( pop2 = 0; pop2 < npop2; pop2++){
-					       if( pop2 != pop ) (pt->mat)[pop][pop] += (pt->mat)[pop][pop2] ;
-					    }
-				     }
-				  }
-				  else {
-			            argcheck( arg, argc, argv);
-				        pt->popi = atoi( argv[arg++] ) -1 ;
-			            argcheck( arg, argc, argv);
-				        pt->popj = atoi( argv[arg++] ) -1 ;
-			            argcheck( arg, argc, argv);
-				        pt->paramv = atof( argv[arg++] ) ;
-				  }
-				  break;
-				case 'j' :
-			          argcheck( arg, argc, argv);
-				  pt->popi = atoi( argv[arg++] ) -1 ;
-			          argcheck( arg, argc, argv);
-				  pt->popj = atoi( argv[arg++] ) -1 ;
-				  break;
-				default: fprintf(stderr,"e event\n");  usage();
-			    }
-			 break;
-			default: fprintf(stderr," option default\n");  usage() ;
-			}
-		}
-		if( (pars.mp.theta == 0.0) && ( pars.mp.segsitesin == 0 ) && ( pars.mp.treeflag == 0 ) && (pars.mp.timeflag == 0) && (pars.mfs.singlton == 0) && (pars.mfs.doubleton == 0) && (pars.mfs.otherton == 0) ) {
-			fprintf(stderr," either -s or -t or -Y or -T option must be used. \n");
-			usage();
-			exit(1);
+                                }
+                            }
+                            for (pop = 0; pop < npop2; pop++) {
+                                (pt->mat)[pop][pop] = 0.0;
+                                for (pop2 = 0; pop2 < npop2; pop2++) {
+                                    if (pop2 != pop) (pt->mat)[pop][pop] += (pt->mat)[pop][pop2];
+                                }
+                            }
+                        } else {
+                            argcheck(arg, argc, argv);
+                            pt->popi = atoi(argv[arg++]) - 1;
+                            argcheck(arg, argc, argv);
+                            pt->popj = atoi(argv[arg++]) - 1;
+                            argcheck(arg, argc, argv);
+                            pt->paramv = atof(argv[arg++]);
+                        }
+                        break;
+                    case 'j':
+                        argcheck(arg, argc, argv);
+                        pt->popi = atoi(argv[arg++]) - 1;
+                        argcheck(arg, argc, argv);
+                        pt->popj = atoi(argv[arg++]) - 1;
+                        break;
+                    default:
+                        fprintf(stderr, "e event\n");
+                        usage();
+                }
+                break;
+            default:
+                fprintf(stderr, " option default\n");
+                usage();
         }
-		sum = 0 ;
-		for( i=0; i< pars.cp.npop; i++) sum += (pars.cp.config)[i] ;
-		if( sum != pars.cp.nsam ) {
-			fprintf(stderr," sum sample sizes != nsam\n");
-			usage();
-			exit(1);
-        }
+    }
+    if ((pars.mp.theta == 0.0) && (pars.mp.segsitesin == 0) && (pars.mp.treeflag == 0) && (pars.mp.timeflag == 0) && (pars.mfs.singlton == 0) && (pars.mfs.doubleton == 0) && (pars.mfs.otherton == 0)) {
+        fprintf(stderr, " either -s or -t or -Y or -T option must be used. \n");
+        usage();
+        exit(1);
+    }
+    sum = 0;
+    for (i = 0; i < pars.cp.npop; i++) sum += (pars.cp.config)[i];
+    if (sum != pars.cp.nsam) {
+        fprintf(stderr, " sum sample sizes != nsam\n");
+        usage();
+        exit(1);
+    }
 
-        if((pars.mp.segsitesin > 0) && (pars.mfs.unfolded != 1)){
-            fprintf(stderr,"\nCannot set -s and -U simultaneous.\n");
-            usage();
-			exit(1);
-        }
+    if ((pars.mp.segsitesin > 0) && (pars.mfs.unfolded != 1)) {
+        fprintf(stderr, "\nCannot set -s and -U simultaneous.\n");
+        usage();
+        exit(1);
+    }
 
-        if((pars.mfs.unfolded != 1) && (pars.cp.nsam < 6)) {
-            fprintf(stderr,"\nWith folded MFS, sample size must be equal or greater than 6. \n");
-            usage();
-			exit(1);
-        }
+    if ((pars.mfs.unfolded != 1) && (pars.cp.nsam < 6)) {
+        fprintf(stderr, "\nWith folded MFS, sample size must be equal or greater than 6. \n");
+        usage();
+        exit(1);
+    }
 
-        if((pars.mfs.multipleHit == 0) && (pars.mfs.moreLength > 0)) {
-            fprintf(stderr,"\nWithout multiple hit , you must not specify -A moreLength. \n");
-            usage();
-			exit(1);
-        }
+    if ((pars.mfs.multipleHit == 0) && (pars.mfs.moreLength > 0)) {
+        fprintf(stderr, "\nWithout multiple hit, you must not specify -A moreLength. \n");
+        usage();
+        exit(1);
+    }
 
-       if((pars.mfs.moreLength > 0) && ((pars.mfs.singlton == 0) && (pars.mfs.doubleton == 0) && (pars.mfs.otherton == 0))){
-            fprintf(stderr,"\nWithout -Y, you must not specify -A moreLength. \n");
-            usage();
-			exit(1);
-        }
+    if ((pars.mfs.moreLength > 0) && ((pars.mfs.singlton == 0) && (pars.mfs.doubleton == 0) && (pars.mfs.otherton == 0))) {
+        fprintf(stderr, "\nWithout -Y, you must not specify -A moreLength. \n");
+        usage();
+        exit(1);
+    }
 
-        if((pars.mp.segsitesin > 0) && ((pars.mfs.singlton > 0) || (pars.mfs.doubleton > 0) || (pars.mfs.otherton > 0))){
-            fprintf(stderr,"\nCannot set -s and -Y simultaneous.\n");
-            usage();
-			exit(1);
-        }
+    if ((pars.mp.segsitesin > 0) && ((pars.mfs.singlton > 0) || (pars.mfs.doubleton > 0) || (pars.mfs.otherton > 0))) {
+        fprintf(stderr, "\nCannot set -s and -Y simultaneous.\n");
+        usage();
+        exit(1);
+    }
 }
 
 
@@ -2810,14 +2718,9 @@ pick2(n,i,j)
 
 /**** ordran.c  ***/
 
-	int
-ordran(n,pbuf)
-	int n;
-	double pbuf[];
-{
-	ranvec(n,pbuf);
-	order(n,pbuf);
-	return;
+void ordran(int n, double* pbuf) {
+    ranvec(n, pbuf);
+    order(n, pbuf);
 }
 
 
@@ -2841,7 +2744,7 @@ mnmial(n,nclass,p,rv)
 	return(j);
 }
 
-        int
+        void
 order(n,pbuf)
         int n;
         double pbuf[];
@@ -2859,18 +2762,13 @@ order(n,pbuf)
 }
 
 
-	int
-ranvec(n,pbuf)
-	int n;
-	double pbuf[];
-{
-	int i;
-	double ran1();
+void ranvec(int n, double* pbuf) {
+    int i;
+    double ran1();
 
-	for(i=0; i<n; i++)
-		pbuf[i] = ran1();
-
-	return;
+    for (i = 0; i < n; i++) {
+        pbuf[i] = ran1();
+    }
 }
 
 
